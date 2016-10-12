@@ -15,7 +15,7 @@ function Aggregate
             ResourceName = 'Aggregate'
             ConfigName   = $ConfigName
         }
-        New-PrerequisiteObject @splat
+        New-PrereqObject @splat
     }
 }
 function Assert-ValidAggregateParams

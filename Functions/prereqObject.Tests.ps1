@@ -1,4 +1,4 @@
-Describe Assert-ValidPrerequisiteObject {
+Describe Assert-ValidPrereqObject {
     It 'throws when ClassId is wrong' {}
     It 'throws when ResourceName contains invalid characters' {}
     It 'throws when Set- is not found' {}

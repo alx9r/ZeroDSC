@@ -12,7 +12,7 @@ function Test-Prerequisites
     )
     process {}
 }
-function Assert-ValidPrerequisiteParams
+function Assert-ValidPrereqParams
 {
     [CmdletBinding()]
     param

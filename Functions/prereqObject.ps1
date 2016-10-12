@@ -1,9 +1,9 @@
-function New-PrequisiteObject
+function New-PrereqObject
 {
     [CmdletBinding()]
     param
     (
-        [ValidateScript({$_ | Assert-ValidPrequisiteParams})]
+        [ValidateScript({$_ | Assert-ValidPreqParams})]
         [hashtable]
         $Params,
 
@@ -27,7 +27,7 @@ function New-PrequisiteObject
         }
     }
 }
-function Assert-ValidPrerequisitObject
+function Assert-ValidPrereqObject
 {
     [CmdletBinding()]
     param
