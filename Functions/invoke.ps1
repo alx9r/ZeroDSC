@@ -15,14 +15,15 @@ function Invoke-ProcessConfiguration
         while ( $invokedSomething )
         {
             $invokedSomething = $false
-            foreach ( $instruction in $instructions )
+            foreach ( $instructionName in $instructions.Keys )
             {
+                $instruction = $instructions.$instructionName
                 if ( $instruction.Result -ne $null )
                 {
                     # this instruction has already been processed
                     next
                 }
-                if ( -not (Test-Prerequisites) )
+                if ( -not (Test-Prerequisites $instructionName $instructions) )
                 {
                     # the prerequisites have not been met
                     next

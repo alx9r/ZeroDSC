@@ -1,4 +1,6 @@
-﻿# dot source all of the other .ps1 files
+﻿Import-Module ToolFoundations
+
+# dot source all of the other .ps1 files
 $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
 
 # but do the type files first
