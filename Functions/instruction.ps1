@@ -1,17 +1,3 @@
-function Test-InstructionPrerequisites
-{
-    [CmdletBinding()]
-    param
-    (
-        [ValidateScript({$_ | Test-ValidConfigPath)]
-        [string]
-        $InstructionName,
-
-        [hashtable]
-        $Instructions
-    )
-    process {}
-}
 function ConvertTo-Instructions
 {
     [CmdletBinding()]

@@ -22,7 +22,7 @@ function Invoke-ProcessConfiguration
                     # this instruction has already been processed
                     next
                 }
-                if ( -not (Test-InstructionPrerequisites) )
+                if ( -not (Test-Prerequisites) )
                 {
                     # the prerequisites have not been met
                     next
