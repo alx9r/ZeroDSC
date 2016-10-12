@@ -1,9 +1,9 @@
-function Assert-ValidResourceParams
+function Test-ValidResourceParams
 {
     [CmdletBinding()]
     param
     (
-        [ValidateScript({$_ | Assert-ValidConfigPath})]
+        [ValidateScript({$_ | Test-ValidConfigPath})]
         [ValidateNotNullOrEmpty()]
         [string]
         $DependsOn,
@@ -11,5 +11,8 @@ function Assert-ValidResourceParams
         [bool]
         $TestOnly
     )
-    process {}
+    process
+    {
+        $true
+    }
 }

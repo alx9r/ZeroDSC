@@ -12,11 +12,13 @@ Describe Test-ValidConfigPath {
             }
             It 'correctly invokes Get-ConfigPathPart ResourceName' {
                 Assert-MockCalled Get-ConfigPathPart -ParameterFilter {
+                    $String -eq '[ResourceName]ConfigName' -and
                     $PartName -eq 'ResourceName'
                 }
             }
             It 'correctly invokes Get-ConfigPathPart ConfigName' {
                 Assert-MockCalled Get-ConfigPathPart -ParameterFilter {
+                    $String -eq '[ResourceName]ConfigName' -and
                     $PartName -eq 'ConfigName'
                 }
             }
@@ -65,7 +67,12 @@ Describe Test-ValidConfigPath {
             $r = $null | Test-ValidConfigPath
             $r | Should be $true
         }
-
+    }
+}
+Describe 'Test-ValidConfigPath Integration' {
+    It 'returns true for [ResourceName]ConfigName' {
+        $r = '[ResourceName]ConfigName' | Test-ValidConfigPath
+        $r | Should be $true
     }
 }
 Describe ConvertTo-ConfigPath {

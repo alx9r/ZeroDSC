@@ -18,8 +18,8 @@ function Test-ValidConfigPath
         }
 
         $cp = &(gcp)
-        (Get-ConfigPathPart ResourceName | Test-ValidResourceName @cp) -and
-        (Get-ConfigPathPart ConfigName   | Test-ValidConfigName @cp)
+        ($String | Get-ConfigPathPart ResourceName | Test-ValidResourceName @cp) -and
+        ($String | Get-ConfigPathPart ConfigName   | Test-ValidConfigName @cp)
     }
 }
 function ConvertTo-ConfigPath
