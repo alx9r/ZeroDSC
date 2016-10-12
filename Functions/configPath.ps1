@@ -1,4 +1,4 @@
-function Assert-ValidConfigPath 
+function Test-ValidConfigPath 
 {
     [CmdletBinding()]
     param
@@ -6,24 +6,41 @@ function Assert-ValidConfigPath
         [Parameter(ValueFromPipeline=$true)]
         $String
     )
-    process{}
+    process
+    {
+        if ( $String -eq [string]::Empty )
+        {
+            return $true
+        }
+        if ( $String -eq $null )
+        {
+            return $true
+        }
+
+        $cp = &(gcp)
+        (Get-ConfigPathPart ResourceName | Test-ValidResourceName @cp) -and
+        (Get-ConfigPathPart ConfigName   | Test-ValidConfigName @cp)
+    }
 }
 function ConvertTo-ConfigPath
 {
     [CmdletBinding()]
     param
     (
-        [ValidateScript({$_ | Assert-ValidResourceName})]
+        [ValidateScript({$_ | Test-ValidResourceName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ResourceName,
         
-        [ValidateScript({$_ | Assert-ValidConfigName})]
+        [ValidateScript({$_ | Test-ValidConfigName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ConfigName
     )
-    process {}
+    process
+    {
+        return "[$ResourceName]$ConfigName"
+    }
 }
 function Get-ConfigPathPart 
 {
@@ -33,12 +50,19 @@ function Get-ConfigPathPart
         [Parameter(ValueFromPipeline=$true)]
         $String,
 
+        [Parameter(Position = 1,
+                   Mandatory = $true)]
         [ValidateSet('ResourceName','ConfigName')]
         $PartName
     )
-    process{}
+    process
+    {
+        $regex = [regex]'^\[(?<ResourceName>.*)\](?<ConfigName>.*)$'
+        $match = $regex.Match($String)
+        (ConvertFrom-RegexNamedGroupCapture -Match $match -Regex $regex).$PartName
+    }
 }
-function Assert-ValidResourceName
+function Test-ValidResourceName
 {
     [CmdletBinding()]
     param
@@ -46,9 +70,22 @@ function Assert-ValidResourceName
         [Parameter(ValueFromPipeline=$true)]
         $String
     )
-    process{}
+    process
+    {
+        if ( [string]::Empty,$null -contains $String )
+        {
+            &(Publish-Failure 'ResourceName cannot be Null or Empty String','String' ([System.ArgumentException]))
+            return $false
+        }
+        if ( $String -notmatch '^[0-9a-zA-Z]*$' )
+        {
+            &(Publish-Failure "$String is not a valid ResourceName",'String' ([System.ArgumentException]))
+            return $false
+        }
+        return $true
+    }
 }
-function Assert-ValidConfigName
+function Test-ValidConfigName
 {
     [CmdletBinding()]
     param
@@ -56,5 +93,18 @@ function Assert-ValidConfigName
         [Parameter(ValueFromPipeline=$true)]
         $String
     )
-    process{}
+    process
+    {
+        if ( [string]::Empty,$null -contains $String )
+        {
+            &(Publish-Failure 'ConfigName cannot be Null or Empty String','String' ([System.ArgumentException]))
+            return $false
+        }
+        if ( $String -notmatch '^[0-9a-zA-Z]*$' )
+        {
+            &(Publish-Failure "$String is not a valid ConfigName",'String' ([System.ArgumentException]))
+            return $false
+        }
+        return $true
+    }
 }
