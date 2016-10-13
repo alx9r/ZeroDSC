@@ -4,7 +4,7 @@ function ConvertTo-Instructions
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [ValidateScript({$_ | Assert-ValidConfigObject})]
+        [ValidateScript({$_ | Test-ValidConfigObject})]
         $InputObject
     )
     begin
