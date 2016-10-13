@@ -12,15 +12,35 @@ function Test-Prerequisites
     )
     process {}
 }
-function Assert-ValidPrereqParams
+
+function Test-ValidPrereqParams
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Params')]
     param
     (
-        [ValidateScript({$_ | Assert-ValidConfigPath})]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $DependsOn
+        [Parameter(ParameterSetName = 'InputObject',
+                   ValueFromPipeline=$true)]
+        $InputObject,
+
+        [Parameter(ParameterSetName = 'Params')]
+        $DependsOn,
+
+        [Parameter(ParameterSetName = 'Params')]
+        $TestOnly
     )
-    process {}
+    process
+    {
+        $cp = &(gcp)
+        if ( $PSCmdlet.ParameterSetName -eq 'InputObject' )
+        {
+            $DependsOn = $InputObject.DependsOn
+        }
+        
+        if ( -not ($DependsOn | Test-ValidConfigPath ) )
+        {
+            return $false
+        }
+
+        return $true
+    }
 }

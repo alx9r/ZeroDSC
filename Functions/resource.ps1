@@ -1,18 +1,31 @@
 function Test-ValidResourceParams
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Params')]
     param
     (
-        [ValidateScript({$_ | Test-ValidConfigPath})]
-        [ValidateNotNullOrEmpty()]
-        [string]
+        [Parameter(ParameterSetName = 'InputObject',
+                   ValueFromPipeline=$true)]
+        $InputObject,
+
+        [Parameter(ParameterSetName = 'Params')]
         $DependsOn,
 
-        [bool]
+        [Parameter(ParameterSetName = 'Params')]
         $TestOnly
     )
     process
     {
-        $true
+        $cp = &(gcp)
+        if ( $PSCmdlet.ParameterSetName -eq 'InputObject' )
+        {
+            $DependsOn = $InputObject.DependsOn
+        }
+        
+        if ( -not ($DependsOn | Test-ValidConfigPath ) )
+        {
+            return $false
+        }
+
+        return $true
     }
 }
