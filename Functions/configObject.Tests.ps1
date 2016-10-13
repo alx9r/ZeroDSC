@@ -1,6 +1,33 @@
-Describe Assert-ValidConfigObject {
-    It 'returns nothing on a good object' {}
-    It 'returns nothing on a list of good objects' {}
+IMport-Module ZeroDSC -Force
+
+Describe Test-ValidConfigObject {
+    It 'returns true for a New-ConfigObject' {
+        $splat = @{
+            Params       = @{}
+            ResourceName = 'ResourceName'
+            ConfigName   = 'ConfigName'
+        }
+        $r = New-ConfigObject @splat | Test-ValidConfigObject
+        $r | Should be $true
+    }
+    It '...even without Params' {
+        $splat = @{
+            ResourceName = 'ResourceName'
+            ConfigName   = 'ConfigName'
+        }
+        $r = New-ConfigObject @splat | Test-ValidConfigObject
+        $r | Should be $true
+    }
+    It 'returns true for a New-PrereqObject' {
+        $splat = @{
+            Params       = @{}
+            ResourceName = 'ResourceName'
+            ConfigName   = 'ConfigName'
+        }
+        $r = New-PrereqObject @splat | Test-ValidConfigObject
+        $r | Should be $true
+    }
+    It 'returns true for a list of good objects' {}
     It 'accepts output of New-ConfigObject' {}
     It 'accepts output of New-PrerequisitesObject' {}
     It 'throws when ClassId is wrong' {}

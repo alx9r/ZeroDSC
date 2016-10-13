@@ -1,18 +1,20 @@
-function New-ConfigurationObject
+function New-ConfigObject
 {
     [CmdletBinding()]
     param
     (
-        [ValidateScript({$_ | Assert-ValidResourceParams})]
+        [ValidateScript({$_ | >> | Test-ValidResourceParams})]
         [hashtable]
         $Params,
 
-        [ValidateScript({$_ | Assert-ValidResourceName})]
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({$_ | Test-ValidResourceName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ResourceName,
 
-        [ValidateScript({$_ | Assert-ValidConfigName})]
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({$_ | Test-ValidConfigName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ConfigName
@@ -27,7 +29,7 @@ function New-ConfigurationObject
         }
     }
 }
-function Assert-ValidConfigObject
+function Test-ValidConfigObject
 {
     [CmdletBinding()]
     param
@@ -37,11 +39,18 @@ function Assert-ValidConfigObject
     )
     process
     {
-        if ( $InputObject.ClassId -ne '9ce982ff-9d3f-449c-9aa2-0c245e25c590' )
+        $validClassIds = @(
+            '9ce982ff-9d3f-449c-9aa2-0c245e25c590'
+            '2c3cf8e0-d16b-49e2-a2c4-9a2c1a999a1b'
+        )
+        $cp = &(gcp)
+        if 
+        ( $validClassIds -notcontains $InputObject.ClassId )
         {
-            throw 'bad configuration object'
+            &(Publish-Failure 'bad configuration object','InputObject' ([System.ArgumentException]))
+            return $false
         }
-        $InputObject.Params | Assert-ValidResourceParams
-        $InputObject.ResourceName | Assert-ValidResourceName
+        ($InputObject.Params       | Test-ValidResourceParams @cp ) -and
+        ($InputObject.ResourceName | Test-ValidResourceName @cp )
     }
 }

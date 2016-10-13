@@ -3,16 +3,16 @@ function New-PrereqObject
     [CmdletBinding()]
     param
     (
-        [ValidateScript({$_ | Assert-ValidPreqParams})]
+        [ValidateScript({$_ | Test-ValidPrereqParams})]
         [hashtable]
         $Params,
 
-        [ValidateScript({$_ | Assert-ValidResourceName})]
+        [ValidateScript({$_ | Test-ValidResourceName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ResourceName,
 
-        [ValidateScript({$_ | Assert-ValidConfigName})]
+        [ValidateScript({$_ | Test-ValidConfigName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ConfigName
