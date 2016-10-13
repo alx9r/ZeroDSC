@@ -4,12 +4,12 @@ function Invoke-ProcessConfiguration
     param
     (
         [Parameter(ValueFromPipeline = $true)]
+        [ValidateScript({$_ | Test-ValidConfigObject})]
         [array]
         $ConfigObjects
     )
     process
     {
-        $ConfigObjects | Assert-ValidConfigObject
         $instructions = $ConfigObjects | ConvertTo-Instructions
 
         while ( $invokedSomething )
