@@ -136,6 +136,18 @@ Describe 'Import-ZeroDscModule using stub' {
                     $Name -eq 'StubResource2FriendlyName'
                 }
             }
+            It 'uppermost module was removed' {
+                $r = Get-Module StubResourceModule1
+                $r | Should beNullOrEmpty
+            }
+            It 'first nested module remains imported' {
+                $r = Get-Module StubResourceModule1a
+                $r | Should not beNullOrEmpty
+            }
+            It 'second nested module remains imported' {
+                $r = Get-Module StubResourceModule1b
+                $r | Should not beNullOrEmpty
+            }
         }
     }
 }
