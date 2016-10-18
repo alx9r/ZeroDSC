@@ -59,14 +59,23 @@ function Assert-ValidZeroDscResource
     )
     process
     {
+        # get the DSC resource
         $dscResource = Get-DscResource $Name
 
-        if ( $dscResource.ImplementedAs -ne 'PowerShell' )
-        {
-            throw 'must be a PowerShell DscResource'
-        }
+        # import the resource as a module
+        $module = $dscResource.Path | Import-Module -PassThru
 
-        $dscResource.Path | Import-Module        
+        # get the commands
+        $getCommand = Get-Command -Name Get-TargetResource -Module $module.Name
+        $setCommand = Get-Command -Name Set-TargetResource -Module $module.Name
+        $testCommand = Get-Command -Name Test-TargetResource -Module $module.Name
+
+        # compare their signatures
+        Compare-Signatures $testCommand $setCommand -ErrorAction Stop
+        Compare-Signatures $setCommand $getCommand -ErrorAction Stop
+
+        # remove the resource as a module
+        $module | Remove-Module
     }
 }
 function Set-DscResourceConfigFunction
@@ -80,4 +89,19 @@ function Set-DscResourceConfigFunction
     process
     {
     }
+}
+function Compare-Signatures
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 1)]
+        [System.Management.Automation.FunctionInfo]
+        $CommandA,
+
+        [Parameter(Position = 2)]
+        [System.Management.Automation.FunctionInfo]
+        $CommandB
+    )
+    process {}
 }
