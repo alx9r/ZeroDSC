@@ -20,17 +20,17 @@ function Import-ZeroDscModule
             # extract the resource names
             $resourceNames = Get-ChildItem "$($module.ModuleBase)\DSCResources" -Directory
 
-            $friendlyNames = foreach ( $name in $resourceNames )
-            {
-                $resource = Get-DscResource $name 
-                
-                # import each resource as a module
-                $resource |
-                        % Path |
-                        Import-Module
-                # return each resource's FriendlyName
-                $resource.FriendlyName
-            }
+            # get each resource
+            $resources = $resourceNames | % { Get-DscResource $_ }
+
+            # import each resource as a module
+            $resources |
+                % Path |
+                Import-Module
+
+            # extract friendly resource names
+            $friendlyNames = $resources | % FriendlyName
+
             # assert that each resource is valid
             $friendlyNames | Assert-ValidZeroDscResource
 
@@ -42,6 +42,11 @@ function Import-ZeroDscModule
             # remove the module
             $module | Remove-Module
         }
+
+        # import the nested modules again
+        $module |
+            % NestedModules |
+            Import-Module
     }
 }
 function Assert-ValidZeroDscResource
