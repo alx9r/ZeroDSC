@@ -1,8 +1,9 @@
 Import-Module ZeroDSC -Force
 
+. "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
 $resourceModuleStubPath = "$($PSCommandPath | Split-Path -Parent)\..\Resources\StubResourceModule1\StubResourceModule1.psd1"
 
-Describe Import-ZeroDscModule {
+Describe 'Import-ZeroDscModule using mocks' {
     InModuleScope ZeroDSC {
         Context 'happy path' {
             Mock Import-Module -Verifiable {
@@ -10,7 +11,7 @@ Describe Import-ZeroDscModule {
                 {
                     New-Object psobject -Property @{
                         NestedModules = 'NestedModule1','NestedModule2'
-                        Path = 'path'
+                        ModuleBase = 'path'
                         Name = 'param'
                     }
                 }
@@ -20,8 +21,8 @@ Describe Import-ZeroDscModule {
                 'ResourceName1','ResourceName2'
             }
             Mock Get-DscResource -Verifiable {
-                New-Object psobject -Property @{ Path = 'ResourcePath1' }
-                New-Object psobject -Property @{ Path = 'ResourcePath2' }
+                New-Object psobject -Property @{ Path = 'ResourcePath1'; FriendlyName = 'ResourceFriendlyName1' }
+                New-Object psobject -Property @{ Path = 'ResourcePath2'; FriendlyName = 'ResourceFriendlyName2' }
             }
             Mock Assert-ValidZeroDscResource -Verifiable {}
             Mock Set-DscResourceConfigFunction -Verifiable {}
@@ -71,27 +72,22 @@ Describe Import-ZeroDscModule {
             }
             It 'correctly invokes Assert-ValidZeroDscResource for first resource' {
                 Assert-MockCalled Assert-ValidZeroDscResource -Times 1 -ParameterFilter {
-                    $Name -eq 'ResourceName1'
+                    $Name -eq 'ResourceFriendlyName1'
                 }
             }
             It 'correctly invokes Assert-ValidZeroDscResource for second resource' {
                 Assert-MockCalled Assert-ValidZeroDscResource -Times 1 -ParameterFilter {
-                    $Name -eq 'ResourceName2'
+                    $Name -eq 'ResourceFriendlyName2'
                 }
             }
             It 'correctly invokes Set-DscResourceFunctions for first resource' {
                 Assert-MockCalled Set-DscResourceConfigFunction -Times 1 -ParameterFilter {
-                    $Name -eq 'ResourceName1'
+                    $Name -eq 'ResourceFriendlyName1'
                 }
             }
             It 'correctly invokes Set-DscResourceFunctions for second resource' {
                 Assert-MockCalled Set-DscResourceConfigFunction -Times 1 -ParameterFilter {
-                    $Name -eq 'ResourceName1'
-                }
-            }
-            It 'correctly invokes Remove-Module for top-level module (the one named by parameter)' {
-                Assert-MockCalled Remove-Module -Times 1 -ParameterFilter {
-                    $Name -eq 'param'
+                    $Name -eq 'ResourceFriendlyName2'
                 }
             }
         }
@@ -110,4 +106,36 @@ Describe Assert-ValidZeroDscResource {
 }
 Describe Set-DscResourceConfigFunction {
     It 'correctly calls Set-Item' {}
+}
+Describe 'Import-ZeroDscModule using stub' {
+    InModuleScope ZeroDSC {
+        Context 'happy path' {
+            Mock Assert-ValidZeroDscResource -Verifiable {}
+            Mock Set-DscResourceConfigFunction -Verifiable {}
+            It 'returns nothing' {
+                $r = Import-ZeroDscModule StubResourceModule1
+                $r | Should beNullOrEmpty
+            }
+            It 'correctly invokes Assert-ValidZeroDscResource for first resource' {
+                Assert-MockCalled Assert-ValidZeroDscResource -Times 1 -ParameterFilter {
+                    $Name -eq 'StubResource1FriendlyName'
+                }
+            }
+            It 'correctly invokes Assert-ValidZeroDscResource for second resource' {
+                Assert-MockCalled Assert-ValidZeroDscResource -Times 1 -ParameterFilter {
+                    $Name -eq 'StubResource2FriendlyName'
+                }
+            }
+            It 'correctly invokes Set-DscResourceFunctions for first resource' {
+                Assert-MockCalled Set-DscResourceConfigFunction -Times 1 -ParameterFilter {
+                    $Name -eq 'StubResource1FriendlyName'
+                }
+            }
+            It 'correctly invokes Set-DscResourceFunctions for second resource' {
+                Assert-MockCalled Set-DscResourceConfigFunction -Times 1 -ParameterFilter {
+                    $Name -eq 'StubResource2FriendlyName'
+                }
+            }
+        }
+    }
 }

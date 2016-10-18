@@ -18,20 +18,24 @@ function Import-ZeroDscModule
                 Import-Module
 
             # extract the resource names
-            $resourceNames = Get-ChildItem "$($module.Path)\DSCResources" -Directory
+            $resourceNames = Get-ChildItem "$($module.ModuleBase)\DSCResources" -Directory
 
-            foreach ( $name in $resourceNames )
+            $friendlyNames = foreach ( $name in $resourceNames )
             {
+                $resource = Get-DscResource $name 
+                
                 # import each resource as a module
-                Get-DscResource $name |
+                $resource |
                         % Path |
                         Import-Module
+                # return each resource's FriendlyName
+                $resource.FriendlyName
             }
             # assert that each resource is valid
-            $resourceNames | Assert-ValidZeroDscResource
+            $friendlyNames | Assert-ValidZeroDscResource
 
             # create the config function for each resource
-            $resourceNames | Set-DscResourceConfigFunction
+            $friendlyNames | Set-DscResourceConfigFunction
         }
         finally
         {
