@@ -1,0 +1,1 @@
+$Name = 'StubResourceModule1a'

@@ -2,34 +2,55 @@ function Import-ZeroDscModule
 {
     param
     (
-        $ModuleName
+        $Name
     )
     process
     {
-        Import-Module $ModuleName | Out-Null
-        $module = Get-Module $ModuleName
-        $module | % NestedModules | Import-Module
-        $resourceNames = Get-ChildItem "$($module.Path)\DSCResources" -Directory
+        # import the module by name
+        $module = Import-Module $Name -PassThru
 
-        foreach ( $name in $resourceNames )
+        try
         {
-            Get-DscResource $name |
-                    % Path |
-                    Import-Module
-            Assert-ValidZeroDscResource $name
-            Set-DscResourceConfigFunction $name
-        }        
+            # import its nested modules, they might be required by the
+            # resources in this module
+            $module | 
+                % NestedModules | 
+                Import-Module
+
+            # extract the resource names
+            $resourceNames = Get-ChildItem "$($module.Path)\DSCResources" -Directory
+
+            foreach ( $name in $resourceNames )
+            {
+                # import each resource as a module
+                Get-DscResource $name |
+                        % Path |
+                        Import-Module
+            }
+            # assert that each resource is valid
+            $resourceNames | Assert-ValidZeroDscResource
+
+            # create the config function for each resource
+            $resourceNames | Set-DscResourceConfigFunction
+        }
+        finally
+        {
+            # remove the module
+            $module | Remove-Module
+        }
     }
 }
 function Assert-ValidZeroDscResource
 {
+    [CmdletBinding()]
     param
     (
-        $ModuleName
+        [Parameter(ValueFromPipeline = $true)]
+        $Name
     )
     process
     {
-        $dscResource = Get-DscResource $ModuleName
+        $dscResource = Get-DscResource $Name
 
         if ( $dscResource.ImplementedAs -ne 'PowerShell' )
         {
@@ -41,9 +62,11 @@ function Assert-ValidZeroDscResource
 }
 function Set-DscResourceConfigFunction
 {
+    [CmdletBinding()]
     param
     (
-        $ModuleName
+        [Parameter(ValueFromPipeline = $true)]
+        $Name
     )
     process
     {
