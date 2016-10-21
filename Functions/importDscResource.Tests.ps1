@@ -172,22 +172,22 @@ Describe 'Import-ZeroDscModule using stub' {
             }
             It 'correctly invokes Assert-ValidZeroDscResource for first resource' {
                 Assert-MockCalled Assert-ValidZeroDscResource -Times 1 -ParameterFilter {
-                    $Name -eq 'StubResource1FriendlyName'
+                    $Name -eq 'StubResource1AFriendlyName'
                 }
             }
             It 'correctly invokes Assert-ValidZeroDscResource for second resource' {
                 Assert-MockCalled Assert-ValidZeroDscResource -Times 1 -ParameterFilter {
-                    $Name -eq 'StubResource2FriendlyName'
+                    $Name -eq 'StubResource1BFriendlyName'
                 }
             }
             It 'correctly invokes Set-DscResourceFunctions for first resource' {
                 Assert-MockCalled Set-DscResourceConfigFunction -Times 1 -ParameterFilter {
-                    $Name -eq 'StubResource1FriendlyName'
+                    $Name -eq 'StubResource1AFriendlyName'
                 }
             }
             It 'correctly invokes Set-DscResourceFunctions for second resource' {
                 Assert-MockCalled Set-DscResourceConfigFunction -Times 1 -ParameterFilter {
-                    $Name -eq 'StubResource2FriendlyName'
+                    $Name -eq 'StubResource1BFriendlyName'
                 }
             }
             It 'uppermost module was removed' {
@@ -210,7 +210,7 @@ Describe 'Assert-ValidZeroDscResource using stub' {
         Context 'happy path' {
             Mock Compare-Signatures -Verifiable {}
             It 'returns nothing' {
-                $r = Assert-ValidZeroDscResource 'StubResource1'
+                $r = Assert-ValidZeroDscResource 'StubResource1A'
                 $r | Should beNullOrEmpty
             }
             It 'compares the Test- and Set- signatures' {
@@ -226,7 +226,7 @@ Describe 'Assert-ValidZeroDscResource using stub' {
                 }            
             }
             It 'resource module was removed' {
-                $r = Get-Module 'StubResource1'
+                $r = Get-Module 'StubResource1A'
                 $r | Should beNullOrEmpty
             }
         }
