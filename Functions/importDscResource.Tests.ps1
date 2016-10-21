@@ -1,9 +1,6 @@
 Import-Module ZeroDSC -Force
 
 . "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
-$resourceModuleStubPath = "$($PSCommandPath | Split-Path -Parent)\..\Resources\StubResourceModule1\StubResourceModule1.psd1"
-$testFunctionInfoPath = "$($PSCommandPath | Split-Path -Parent)\..\Resources\testFunctionInfo.xml"
-$setFunctionInfoPath = "$($PSCommandPath | Split-Path -Parent)\..\Resources\setFunctionInfo.xml"
 
 Describe 'Import-ZeroDscModule using mocks' {
     InModuleScope ZeroDSC {
