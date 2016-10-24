@@ -2,14 +2,25 @@ Import-Module ZeroDSC -Force
 
 $stubModule1Path = "$($PSCommandPath | Split-Path -Parent)\..\Resources\StubResourceModule1\StubResourceModule1.psd1"
 $stubModule3Path = "$($PSCommandPath | Split-Path -Parent)\..\Resources\StubResourceModule3\StubResourceModule3.psd1"
+$stubResourceModule1APath = "$($PSCommandPath | Split-Path -Parent)\..\Resources\StubResourceModule1\DSCResources\StubResource1A\StubResource1A.psm1"
 
-Describe 'Get-ResourceName using mocks' {
-    It 'invokes Get-ResourceModule' {}
-}
+
 Describe 'Get-ResourceModule' {
-    It 'gets module when name is the path' {}
-    It 'gets module when name is the name' {}
-    It 'gets module when name is the friendly name' {}
+    BeforeAll {
+        Import-Module $stubResourceModule1APath
+    }
+    It 'gets module when name is the path' {
+        $r = Get-ResourceModule $stubResourceModule1APath
+        $r.Name | Should be 'StubResource1A'
+    }
+    It 'gets module when name is the name' {
+        $r = Get-ResourceModule 'StubResource1A'
+        $r.Name | Should be 'StubResource1A'
+    }
+    It 'gets module when name is the friendly name' {
+        $r = Get-ResourceModule 'StubResource1AFriendlyName'
+        $r.Name | Should be 'StubResource1A'
+    }
 }
 Describe 'Get-ResourceNameFromImplementingAssembly' {
     It 'returns only the DSC resource names' {

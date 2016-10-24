@@ -1,23 +1,35 @@
-function Get-ResourceName
-{
-    param
-    (
-        $ModuleName
-    )
-    process
-    {
-        
-    }
-}
 function Get-ResourceModule
 {
     param
     (
+        [ValidateNotNull()]
         $Name
     )
     process
     {
-        Get-Module | ? {$_.Name -eq $Name -or $_.Path -eq $Name }
+        try
+        {
+            $Name = [string]($Name | Resolve-Path -ErrorAction Stop)
+        }
+        catch {}
+        foreach ( $module in (Get-Module) )
+        {
+            if ( $module.Name -eq $Name -or $module.Path -eq $Name )
+            {
+                $module
+                continue
+            }
+            
+            try
+            {
+                if ( $Name -eq (Get-FriendlyNameFromMof "$($module.ModuleBase)\$($module.Name).schema.mof") )
+                {
+                    $module
+                    continue
+                }
+            }
+            catch {}
+        }
     }
 }
 function Get-ResourceNameFromImplementingAssembly
@@ -71,7 +83,7 @@ function Get-FriendlyNameFromMof
     )
     process
     {
-        $lines = Get-Content $Path
+        $lines = Get-Content $Path -ErrorAction Stop
         $regex = [regex]'^\[.*FriendlyName\("(?<FriendlyName>.*)"\).*\]$'
         foreach ( $line in $lines )
         {
