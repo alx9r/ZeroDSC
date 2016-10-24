@@ -66,13 +66,68 @@ Describe Get-MofResourceCommands {
     {
         $record = $records.$resourceName
         It "returns correct commands for $resourceName" {
-            $r = $record.DscResource |
+            $record.MofResourceCommands = $record.DscResource |
                 Get-MofResourceCommands
+            $r = $record.MofResourceCommands
             $r.Count | Should be 3
             $r.'Get-TargetResource' | Should beOfType ([System.Management.Automation.FunctionInfo])
             $r.'Set-TargetResource' | Should beOfType ([System.Management.Automation.FunctionInfo])
             $r.'Test-TargetResource' | Should beOfType ([System.Management.Automation.FunctionInfo])
         }
+        foreach ( $mode in 'Get','Set','Test' )
+        {
+            It "$mode-TargetResource includes parameters" {
+                $r = $record.MofResourceCommands."$mode-TargetResource".Parameters
+                $r | Should not beNullOrEmpty
+            }
+        }
+    }
+}
+
+
+Describe Invoke-MofResourceCommand {
+    $c = $records.StubResource1AFriendlyName.DscResource | Get-MofResourceCommands
+    $p = @{
+        StringParam1 = 's1'
+        BoolParam = $true
+    }
+    It 'import the module' {
+        # this task is normally handled by the ResourceInvoker constructor
+        $records.StubResource1AFriendlyName.DscResource.Path |
+            Import-Module
+    }
+    Context 'mock' {
+        Mock 'StubResource1A\Test-TargetResource' -Verifiable { 'return value' }
+        It 'correctly returns value' {
+            $r = Invoke-MofResourceCommand test -Params $p -CommandInfo $c
+            $r | Should be 'return value'
+        }
+        It 'correctly invokes Test-TargetResource' {
+            Assert-MockCalled 'StubResource1A\Test-TargetResource' -Times 1 {
+                $StringParam1 -eq 's1' -and
+                $BoolParam -eq $true
+            }
+        }
+    }
+    Context 'stub' {
+        It 'returns value' {
+            $r = Invoke-MofResourceCommand get -Params $p -CommandInfo $c
+            $r | Should be 's1'
+        }
+    }
+}
+Describe Invoke-PruneParams {
+    $c = $records.StubResource1AFriendlyName.DscResource | 
+        Get-MofResourceCommands |
+        % { $_.'Get-TargetResource' }
+    $p = @{
+        StringParam1 = 's1'
+        BoolParam = $true
+    }
+    It 'correctly removes parameter' {
+        $r = Invoke-PruneParams -CommandInfo $c -Params $p
+        $r.Count | Should be 1
+        $r.StringParam1 | Should be 's1'
     }
 }
 Describe Test-ClassResourceType {

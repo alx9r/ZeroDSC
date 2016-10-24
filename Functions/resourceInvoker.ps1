@@ -1,16 +1,70 @@
-class ResourceInvoker { 
-    [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]$ResourceInfo
-}
-class MofResourceInvoker : ResourceInvoker {
-    [System.Management.Automation.FunctionInfo]$SetCommand
-    [System.Management.Automation.FunctionInfo]$GetCommand
-    [System.Management.Automation.FunctionInfo]$TestCommand
+class ResourceInvoker 
+{ 
+    [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+    $ResourceInfo
 
-    [object]Get([hashtable]$Params) { return [psobject]}
-    Set([hashtable]$Params) {}
-    [bool]Test([hashtable]$Params) { return $false }
+    ResourceInvoker(
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $ResourceInfo
+    )
+    {
+        $this.ResourceInfo = $ResourceInfo
+        Import-Module $this.ResourceInfo.Path
+    }
 }
-class ClassResourceInvoker : ResourceInvoker {
+
+class MofResourceInvoker : ResourceInvoker 
+{
+    [System.Collections.Generic.Dictionary`2[System.String,System.Management.Automation.CommandInfo]]
+    $CommandInfo
+
+    MofResourceInvoker(
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $ResourceInfo
+    ) : base ( $ResourceInfo )
+    {
+        $this.CommandInfo = $ResourceInfo | Get-MofResourceCommands
+    }
+
+    [object] Get( [hashtable] $Params ) 
+    { 
+        $splat = @{
+            Mode = 'Get'
+            Params = $Params
+            CommandInfo = $this.CommandInfo
+        }
+        return Invoke-MofResourceCommand @splat
+    }
+
+    Set( [hashtable] $Params ) 
+    {
+        $splat = @{
+            Mode = 'Set'
+            Params = $Params
+            CommandInfo = $this.CommandInfo
+        }
+        Invoke-MofResourceCommand @splat
+    }
+
+    [bool] Test( [hashtable] $Params )
+    { 
+        $splat = @{
+            Mode = 'Test'
+            Params = $Params
+            CommandInfo = $this.CommandInfo
+        }
+        return Invoke-MofResourceCommand @splat
+    }
+}
+
+class ClassResourceInvoker : ResourceInvoker 
+{
+    ClassResourceInvoker(
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $ResourceInfo
+    ) : base ( $ResourceInfo )
+    {}
+
     [object]Get([hashtable]$Params) { return [psobject]}
     Set([hashtable]$Params) {}
     [bool]Test([hashtable]$Params) { return $false }
@@ -28,11 +82,11 @@ function New-ResourceInvoker
     {
         if ( $DscResource | Test-MofResourceType )
         {
-            return [MofResourceInvoker]::new()
+            return [MofResourceInvoker]::new( $DscResource )
         }
         if ( $DscResource | Test-ClassResourceType )
         {
-            return [ClassResourceInvoker]::new()
+            return [ClassResourceInvoker]::new( $DscResource )
         }
 
         throw New-Object System.ArgumentException(
@@ -73,17 +127,76 @@ function Get-MofResourceCommands
     )
     process
     {
-        $resourceModule = Get-Module $DscResource.Path -ListAvailable
-        $commands = $resourceModule.ExportedCommands.Keys
+        # see also ToolFoundations\EnvironmentTests\psModuleInfo.Tests.ps1
+
+        $moduleInfo = Get-Module |
+            ? { $_.Path -eq $DscResource.Path }
+
+        if ( -not $moduleInfo )
+        {
+            $moduleInfo = Import-Module $DscResource.Path -PassThru
+            $moduleInfo | Remove-Module
+        }
+
+        $commands = $moduleInfo.ExportedCommands.Keys
         if ( $commands -contains 'Set-TargetResource' -and
              $commands -contains 'Get-TargetResource' -and
              $commands -contains 'Test-TargetResource' )
         {
-            return $resourceModule.ExportedCommands
+            return $moduleInfo.ExportedCommands
         }
 
         throw "Could not find commands for DSC resource $($DscResource.ResourceType)."
     }    
+}
+function Invoke-MofResourceCommand
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 1)]
+        [ValidateSet('Get','Set','Test')]
+        $Mode,
+
+        [hashtable]
+        $Params,
+
+        [System.Collections.Generic.Dictionary`2[System.String,System.Management.Automation.CommandInfo]]
+        $CommandInfo
+    )
+    process
+    {
+        $commandName = "$Mode-TargetResource"
+        $moduleName = $CommandInfo.$commandName.ModuleName
+        
+        $prunedParams = Invoke-PruneParams -Params $Params -CommandInfo $CommandInfo.$commandName
+
+        return & "$moduleName\$commandName" @prunedParams
+    }
+}
+function Invoke-PruneParams 
+{
+    param
+    (
+        [hashtable]
+        $Params,
+        
+        [System.Management.Automation.CommandInfo]
+        $CommandInfo
+    )
+    process
+    {
+        $p = $Params.Clone()
+
+        foreach ( $key in $Params.Keys )
+        {
+            if ( $key -notin $CommandInfo.Parameters.Keys )
+            {
+                $p.Remove($key)
+            }
+        }
+        return $p
+    }
 }
 function Test-ClassResourceType
 {
