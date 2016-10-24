@@ -51,18 +51,65 @@ function Test-MofResourceType
     )
     process
     {
+        try
+        {
+            $DscResource | Get-MofResourceCommands | Out-Null
+            return $true
+        }
+        catch
+        {
+            return $false
+        }
+    }
+}
+function Get-MofResourceCommands
+{
+    [CmdletBInding()]
+    param
+    (
+        [Parameter(ValueFromPipeline = $true)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $DscResource
+    )
+    process
+    {
         $resourceModule = Get-Module $DscResource.Path -ListAvailable
         $commands = $resourceModule.ExportedCommands.Keys
         if ( $commands -contains 'Set-TargetResource' -and
              $commands -contains 'Get-TargetResource' -and
              $commands -contains 'Test-TargetResource' )
         {
-            return $true
+            return $resourceModule.ExportedCommands
         }
-        return $false
-    }
+
+        throw "Could not find commands for DSC resource $($DscResource.ResourceType)."
+    }    
 }
 function Test-ClassResourceType
+{
+    [CmdletBInding()]
+    param
+    (
+        [Parameter(ValueFromPipeline = $true)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $DscResource
+    )
+    process
+    {
+        try
+        {
+            $DscResource | 
+                New-ClassResourceObject |
+                Out-Null
+            return $true
+        }
+        catch
+        {
+            return $false
+        }
+    }
+}
+function New-ClassResourceObject
 {
     [CmdletBInding()]
     param
@@ -120,8 +167,9 @@ function Test-ClassResourceType
                 continue
             }
 
-            return $true
+            return $object
         }
-        return $false
+
+        throw "Could not create class resource object for DSC Resource $($DscResource.ResourceType)"
     }
 }

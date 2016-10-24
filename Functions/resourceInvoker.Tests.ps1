@@ -21,7 +21,6 @@ Describe 'Test Environment' {
     It 'retrieve the DscResources' {
         $records.DscResources = Get-DscResource
     }
-    $records.DscResourcesHashtable = @{}
     foreach ( $resourceName in $stubResourceNames )
     {
         $records.$resourceName = @{}
@@ -33,13 +32,13 @@ Describe 'Test Environment' {
     }
 }
 Describe New-ResourceInvoker {
-    It 'creates a class invoker for a class-based resource' {
-        $r = Get-DscResource StubResource2A | New-ResourceInvoker
-        $r.GetType().Name | Should be 'ClassResourceInvoker'
-    }
     It 'creates a mof invoker for a mof-based resoruce' {
-        $r = Get-DscResource StubResource1A | New-ResourceInvoker
+        $r = $records.StubResource1AFriendlyName.DscResource | New-ResourceInvoker
         $r.GetType().Name | Should be 'MofResourceInvoker'
+    }
+    It 'creates a class invoker for a class-based resource' {
+        $r = $records.StubResource2A.DscResource | New-ResourceInvoker
+        $r.GetType().Name | Should be 'ClassResourceInvoker'
     }
 }
 Describe Test-MofResourceType {
@@ -62,7 +61,20 @@ Describe Test-MofResourceType {
         }
     }
 }
-
+Describe Get-MofResourceCommands {
+    foreach ( $resourceName in $stubMofResourceNames )
+    {
+        $record = $records.$resourceName
+        It "returns correct commands for $resourceName" {
+            $r = $record.DscResource |
+                Get-MofResourceCommands
+            $r.Count | Should be 3
+            $r.'Get-TargetResource' | Should beOfType ([System.Management.Automation.FunctionInfo])
+            $r.'Set-TargetResource' | Should beOfType ([System.Management.Automation.FunctionInfo])
+            $r.'Test-TargetResource' | Should beOfType ([System.Management.Automation.FunctionInfo])
+        }
+    }
+}
 Describe Test-ClassResourceType {
     foreach ( $resourceName in $stubClassResourceNames )
     {
@@ -82,6 +94,17 @@ Describe Test-ClassResourceType {
             $r.Count | Should be 1
             $r | Should beOfType bool
             $r | Should be $false
+        }
+    }
+}
+Describe New-ClassResourceObject {
+    foreach ( $resourceName in $stubClassResourceNames )
+    {
+        $record = $records.$resourceName
+        It "returns correct resource object for $resourceName" {
+            $r = $record.DscResource | New-ClassResourceObject
+            $r.Count | Should be 1
+            $r.GetType().Name | Should be $resourceName
         }
     }
 }
