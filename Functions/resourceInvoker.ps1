@@ -59,11 +59,16 @@ class MofResourceInvoker : ResourceInvoker
 
 class ClassResourceInvoker : ResourceInvoker 
 {
+    $ResourceObject
+
     ClassResourceInvoker(
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
         $ResourceInfo
     ) : base ( $ResourceInfo )
-    {}
+    {
+        $this.ResourceObject = $this.ResourceInfo |
+            New-ClassResourceObject
+    }
 
     [object]Get([hashtable]$Params) { return [psobject]}
     Set([hashtable]$Params) {}
@@ -284,5 +289,34 @@ function New-ClassResourceObject
         }
 
         throw "Could not create class resource object for DSC Resource $($DscResource.ResourceType)"
+    }
+}
+function Invoke-ClassResourceCommand
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 1)]
+        [ValidateSet('Get','Set','Test')]
+        $Mode,
+
+        [hashtable]
+        $Params,
+
+        $ResourceObject
+    )
+    process
+    {
+        $propertyNames = $ResourceObject | Get-Member -MemberType Property | % Name
+        foreach ( $key in $Params.Keys )
+        {
+            if ( $key -notin $propertyNames )
+            {
+                continue
+            }
+            $ResourceObject.$key = $Params.$key
+        }
+
+        $ResourceObject.$Mode()
     }
 }

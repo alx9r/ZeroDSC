@@ -13,8 +13,17 @@ class StubResource2A
     [bool]
     $BoolParam
 
-    [void] Set() {}
-    [bool] Test() { return $true }
+    [StubResource2A] Get() 
+    { 
+        return $this 
+    }
 
-    [StubResource2A] Get() { return $this }
+    [void] Set() {}
+
+    [bool] Test()
+    { 
+        return $this.BoolParam 
+    }
+
+
 }

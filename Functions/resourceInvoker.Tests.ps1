@@ -163,3 +163,24 @@ Describe New-ClassResourceObject {
         }
     }
 }
+Describe Invoke-ClassResourceCommand {
+    $o = $records.StubResource2A.DscResource | New-ClassResourceObject
+    $p = @{
+        StringParam1 = 's1'
+        BoolParam = $true
+    }
+    It 'import the module' {
+        # this task is normally handled by the ResourceInvoker constructor
+        $records.StubResource2A.DscResource.Path |
+            Import-Module
+    }
+    Context 'stub' {
+        It 'returns value' {
+            $r = Invoke-ClassResourceCommand Get -Params $p -ResourceObject $o
+            $r | Should beOfType $o.GetType()
+            $r | Should be $o
+            $r.StringParam1 | Should be 's1'
+            $r.BoolParam | Should be $true
+        }
+    }
+}
