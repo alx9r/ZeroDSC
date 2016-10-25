@@ -99,6 +99,7 @@ function New-ResourceInvoker
         )
     }
 }
+
 function Test-MofResourceType
 {
     [CmdletBInding()]
@@ -121,6 +122,7 @@ function Test-MofResourceType
         }
     }
 }
+
 function Get-MofResourceCommands
 {
     [CmdletBInding()]
@@ -154,6 +156,7 @@ function Get-MofResourceCommands
         throw "Could not find commands for DSC resource $($DscResource.ResourceType)."
     }    
 }
+
 function Invoke-MofResourceCommand
 {
     [CmdletBinding()]
@@ -179,6 +182,7 @@ function Invoke-MofResourceCommand
         return & "$moduleName\$commandName" @prunedParams
     }
 }
+
 function Invoke-PruneParams 
 {
     param
@@ -203,6 +207,7 @@ function Invoke-PruneParams
         return $p
     }
 }
+
 function Test-ClassResourceType
 {
     [CmdletBInding()]
@@ -227,6 +232,7 @@ function Test-ClassResourceType
         }
     }
 }
+
 function New-ClassResourceObject
 {
     [CmdletBInding()]
@@ -291,6 +297,7 @@ function New-ClassResourceObject
         throw "Could not create class resource object for DSC Resource $($DscResource.ResourceType)"
     }
 }
+
 function Invoke-ClassResourceCommand
 {
     [CmdletBinding()]

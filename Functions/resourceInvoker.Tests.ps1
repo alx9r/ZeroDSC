@@ -31,6 +31,7 @@ Describe 'Test Environment' {
         }
     }
 }
+
 Describe New-ResourceInvoker {
     It 'creates a mof invoker for a mof-based resoruce' {
         $r = $records.StubResource1AFriendlyName.DscResource | New-ResourceInvoker
@@ -41,6 +42,7 @@ Describe New-ResourceInvoker {
         $r.GetType().Name | Should be 'ClassResourceInvoker'
     }
 }
+
 Describe Test-MofResourceType {
     foreach ( $resourceName in $stubMofResourceNames )
     {
@@ -61,6 +63,7 @@ Describe Test-MofResourceType {
         }
     }
 }
+
 Describe Get-MofResourceCommands {
     foreach ( $resourceName in $stubMofResourceNames )
     {
@@ -83,7 +86,6 @@ Describe Get-MofResourceCommands {
         }
     }
 }
-
 
 Describe Invoke-MofResourceCommand {
     $c = $records.StubResource1AFriendlyName.DscResource | Get-MofResourceCommands
@@ -116,6 +118,7 @@ Describe Invoke-MofResourceCommand {
         }
     }
 }
+
 Describe Invoke-PruneParams {
     $c = $records.StubResource1AFriendlyName.DscResource | 
         Get-MofResourceCommands |
@@ -130,6 +133,7 @@ Describe Invoke-PruneParams {
         $r.StringParam1 | Should be 's1'
     }
 }
+
 Describe Test-ClassResourceType {
     foreach ( $resourceName in $stubClassResourceNames )
     {
@@ -152,6 +156,7 @@ Describe Test-ClassResourceType {
         }
     }
 }
+
 Describe New-ClassResourceObject {
     foreach ( $resourceName in $stubClassResourceNames )
     {
@@ -163,6 +168,7 @@ Describe New-ClassResourceObject {
         }
     }
 }
+
 Describe Invoke-ClassResourceCommand {
     $o = $records.StubResource2A.DscResource | New-ClassResourceObject
     $p = @{
