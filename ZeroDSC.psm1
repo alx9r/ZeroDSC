@@ -1,4 +1,4 @@
-﻿Import-Module ToolFoundations
+﻿Import-Module PSDesiredStateConfiguration
 
 # dot source all of the other .ps1 files
 $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
