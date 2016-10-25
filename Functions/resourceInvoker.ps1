@@ -70,9 +70,35 @@ class ClassResourceInvoker : ResourceInvoker
             New-ClassResourceObject
     }
 
-    [object]Get([hashtable]$Params) { return [psobject]}
-    Set([hashtable]$Params) {}
-    [bool]Test([hashtable]$Params) { return $false }
+    [object] Get( [hashtable] $Params )
+    {
+        $splat = @{
+            Mode = 'Get'
+            Params = $Params
+            ResourceObject = $this.ResourceObject
+        }
+        return Invoke-ClassResourceCommand @splat
+    }
+
+    Set( [hashtable] $Params )
+    {
+        $splat = @{
+            Mode = 'Set'
+            Params = $Params
+            ResourceObject = $this.ResourceObject
+        }
+        Invoke-ClassResourceCommand @splat
+    }
+
+    [bool] Test( [hashtable] $Params )
+    {
+        $splat = @{
+            Mode = 'Test'
+            Params = $Params
+            ResourceObject = $this.ResourceObject
+        }
+        return Invoke-ClassResourceCommand @splat
+    }
 }
 
 function New-ResourceInvoker
