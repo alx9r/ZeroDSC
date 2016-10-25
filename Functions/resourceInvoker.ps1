@@ -270,10 +270,10 @@ function New-ClassResourceObject
     )
     process
     {
-        foreach ( $module in @(
+        foreach ( $module in ( @(
                 $DscResource.Module
                 $DscResource.Module.NestedModules
-            )
+            ) | ? {$_} ) 
         )
         {
             $module | Import-Module
