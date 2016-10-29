@@ -4,7 +4,7 @@
 $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
 
 # but do the type files first
-$typeFiles = "$moduleRoot\Functions\*Types.ps1"
+$typeFiles = "$moduleRoot\Functions\*Types.ps1","$moduleRoot\Functions\*Type.ps1"
 $otherFiles = "$moduleRoot\Functions\*.ps1" | ? {$typeFiles -notcontains $_}
 @($typeFiles)+@($otherFiles) |
     Resolve-Path |
