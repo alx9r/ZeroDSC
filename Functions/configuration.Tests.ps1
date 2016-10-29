@@ -3,15 +3,14 @@ Import-Module ZeroDsc -Force
 $records = @{}
 
 Describe 'Configuration sample' {
-    $sb = {
-        Get-DscResource StubResource1A | Import-DscResource
-        StubResource1A ConfigName1 @{
-            StringParam1 = 's1'
-            BoolParam = $true
-        }
-    }
     It 'returns a ConfigInfo object' {
-        $records.Sample1Result = zConfiguration ConfigName2 $sb
+        $records.Sample1Result = zConfiguration ConfigName2 {
+            Get-DscResource StubResource1A | Import-DscResource
+            StubResource1A ConfigName1 @{
+                StringParam1 = 's1'
+                BoolParam = $true
+            }
+        }
     }
     It 'has the correct name' {
         $records.Sample1Result.Name |
