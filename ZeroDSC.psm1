@@ -1,4 +1,4 @@
-﻿Import-Module PSDesiredStateConfiguration #,ToolFoundations
+﻿Import-Module PSDesiredStateConfiguration,ToolFoundations
 
 $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
 

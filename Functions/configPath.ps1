@@ -27,11 +27,15 @@ function ConvertTo-ConfigPath
     [CmdletBinding()]
     param
     (
+        [Parameter(Mandatory = $true,
+                   ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({$_ | Test-ValidResourceName})]
         [ValidateNotNullOrEmpty()]
         [string]
         $ResourceName,
         
+        [Parameter(Mandatory = $true,
+                   ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({$_ | Test-ValidConfigName})]
         [ValidateNotNullOrEmpty()]
         [string]

@@ -49,7 +49,22 @@ Describe 'Import- and Remove-DscResource' {
     }
 }
 Describe 'sample configuration scriptblock' {
-    InModuleScope ZeroDsc {
+    Context 'scriptblock created in module' {
+        InModuleScope ZeroDsc {
+            $sb = {
+                $records.'StubResource4A_1.0' | Import-DscResource
+
+                StubResource4A ConfigName @{
+                    StringParam1 = 's1'
+                    BoolParam = $true
+                }
+            }
+            It 'scriptblock returns items' {
+                $records.SbResults1 = & $sb
+            }
+        }
+    }
+    Context 'scriptblock created outside module then bound to module' {
         $sb = {
             $records.'StubResource4A_1.0' | Import-DscResource
 
@@ -58,15 +73,18 @@ Describe 'sample configuration scriptblock' {
                 BoolParam = $true
             }
         }
-        It 'scriptblock returns items' {
-            $records.SbResults = & $sb
+        It 'bind the scriptblock to the module' {
+            $records.BoundScriptBlock = (Get-Module ZeroDsc).NewBoundScriptBlock($sb)
+        }
+        It 'returns items' {
+            $records.SbResults2 = & $records.BoundScriptBlock
         }
     }
     It 'items includes the DscResourceInfo object' {
-        $records.SbResults[0] | Should be $records.'StubResource4A_1.0'
+        $records.SbResults1[0] | Should be $records.'StubResource4A_1.0'
     }
     It 'items includes a ResourceConfigInfo object' {
-        $records.SbResults[1].GetType() |
+        $records.SbResults1[1].GetType() |
             Should be 'ResourceConfigInfo'
     }
 }

@@ -3,6 +3,7 @@ function zConfiguration
     [CmdletBinding()]
     param
     (
+        [ValidateNotNullOrEmpty()]
         [string]
         $Name,
 
@@ -11,5 +12,12 @@ function zConfiguration
     )
     process 
     {
+        $items = & (Get-Module ZeroDsc).NewBoundScriptBlock($ScriptBlock)
+        $configInfo = [ConfigInfo]::new($Name)
+        foreach ( $item in $items )
+        {
+            $configInfo.Add($item)
+        }
+        return $configInfo
     }
 }
