@@ -1,4 +1,4 @@
-function ConvertTo-ZeroDscResourceModule
+function Import-DscResource
 {
     param
     (
@@ -10,19 +10,13 @@ function ConvertTo-ZeroDscResourceModule
     )
     process
     {
-        New-Module -Name (Get-DynamicModuleName $DscResource) -ScriptBlock (
-            [scriptblock]::Create( @"
-                function $($DscResource.ResourceType)
-                {
-                    $((Get-Item Function:\New-ResourceConfigInfo).Scriptblock)
-                }
-"@
-            )
-        )
+        New-Alias $DscResource.ResourceType New-ResourceConfigInfo -Scope 1
+
+        return $DscResource
     }
 }
 
-function Remove-ZeroDscResourceModule
+function Remove-DscResource
 {
     param
     (
@@ -34,31 +28,6 @@ function Remove-ZeroDscResourceModule
     )
     process
     {
-        $moduleName = $DscResource |
-            Get-DynamicModuleName
-        
-        $moduleName | 
-            Get-Module |
-            Remove-Module
-
-        Get-ChildItem function: |
-            ? { $_.Source -eq $moduleName } |
-            Remove-Item
-    }
-}
-
-function Get-DynamicModuleName
-{
-    param
-    (
-        [Parameter(ValueFromPipeline = $true,
-                   Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
-        $DscResource
-    )
-    process
-    {
-        return "$($DscResource.ResourceType)_$($DscResource.Version)-Dyn"
+        Remove-Item "alias:\$($DscResource.ResourceType)"
     }
 }

@@ -19,41 +19,54 @@ Describe 'set up environment' {
             Should not beNullOrEmpty
     }
 }
-Describe 'ConvertTo- and Remove-ZeroDscResourceModule' {
-    It 'correctly creates a module' {
-        $r = $records.'StubResource4A_1.1' | 
-            ConvertTo-ZeroDscResourceModule
-        $r | Should beOfType ([psmoduleinfo])
-        $r.Name | Should be 'StubResource4A_1.1-Dyn'
-        $r.ExportedCommands.Keys[0] | Should be 'StubResource4A'
+Describe 'Import- and Remove-DscResource' {
+    It 'Import- passes through the DscResourceInfo' {
+        $r = $records.'StubResource4A_1.0' | Import-DscResource
+        $r | Should be $records.'StubResource4A_1.0'
     }
-    It 'importing the module correctly creates a function' {
-        $r = $records.'StubResource4A_1.1' |
-            ConvertTo-ZeroDscResourceModule |
-            Import-Module
-        $r = Get-Item function:\StubResource4A
-        $r.Name | Should be 'StubResource4A'
-        $r.Module.Name | Should be 'StubResource4A_1.1-Dyn'
+    InModuleScope ZeroDsc {
+        It 'correctly creates an alias' {
+            Get-Alias StubResource4A -ea Stop
+        }
+        It 'the alias is for New-ResourceConfigInfo' {
+            $r = Get-Alias StubResource4A -ea Stop
+            $r.ResolvedCommandName | Should be New-ResourceConfigInfo
+        }
     }
-    It 'removing returns nothing' {
-        $r = $records.'StubResource4A_1.1' |
-            Remove-ZeroDscResourceModule
+    It 'but not outside modulescope' {
+        { Get-Alias StubResource4A -ea Stop } |
+            Should throw 'cannot find a matching alias'
+    }
+    It 'Remove- returns nothing' {
+        $r = $records.'StubResource4A_1.0' | Remove-DscResource
         $r | Should beNullOrEmpty
     }
-    It 'correctly removes the module' {
-        $r = Get-Module 'StubResource4A_1.1-Dyn'
-        $r | Should beNullOrEmpty        
-    }
-    It 'correctly removes a function' {
-        { Get-Item function:\StubResource4A -ea Stop } |
-            Should throw 'does not exist'
+    InModuleScope ZeroDsc {
+        It 'correctly removes the alias'  {
+            { Get-Alias StubResource4A -ea Stop } |
+                Should throw 'cannot find a matching alias'
+        }
     }
 }
+Describe 'sample configuration scriptblock' {
+    InModuleScope ZeroDsc {
+        $sb = {
+            $records.'StubResource4A_1.0' | Import-DscResource
 
-Describe 'Get-DynamicModuleName' {
-    It 'returns correct module name' {
-        $r = $records.'StubResource4A_1.1' |
-            Get-DynamicModuleName
-        $r | Should be 'StubResource4A_1.1-Dyn'
+            StubResource4A ConfigName @{
+                StringParam1 = 's1'
+                BoolParam = $true
+            }
+        }
+        It 'scriptblock returns items' {
+            $records.SbResults = & $sb
+        }
+    }
+    It 'items includes the DscResourceInfo object' {
+        $records.SbResults[0] | Should be $records.'StubResource4A_1.0'
+    }
+    It 'items includes a ResourceConfigInfo object' {
+        $records.SbResults[1].GetType() |
+            Should be 'ResourceConfigInfo'
     }
 }
