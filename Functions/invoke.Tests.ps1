@@ -1,9 +1,14 @@
 Import-Module ZeroDSC -Force
 
-Describe Invoke-ProcessConfiguration {
-    Context 'ConvertTo-Instructions' {          
-        It 'correctly invokes ConvertTo-Instructions' {}
+$records = @{}
+
+Describe 'Test Environment' {
+    It 'add the test stubs to PSModulePath' {
+        . "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
     }
+}
+<#
+Describe Invoke-ProcessConfiguration {
     It 'selects Mode Set by default' {}
     It 'selects Mode Test for TestOnly' {}
     Context 'one instruction, prerequisite failed' {
@@ -25,4 +30,41 @@ Describe Invoke-ProcessConfiguration {
     Context 'two instructions, one prerequisite, first after second, success' {}
     Context 'two instructions, one prerequisite, first after second, fail first' {}
     Context 'two instructions, one prerequisite, first after second, fail second' {}
+}
+#>
+Describe 'Invoke-ResourceConfiguration' {
+    Context 'stub' {
+        It 'correctly returns value (1)' {
+            $configInfo = zConfiguration ConfigName {
+                Get-DscResource StubResource1A | Import-DscResource
+                StubResource1A ResourceName @{
+                    StringParam1 = 's1'
+                    BoolParam = $true
+                }
+            }
+            $splat = @{
+                DscResources = $configInfo.DscResources
+                ResourceConfig = $configInfo.ResourceConfigs.'[StubResource1A]ResourceName'
+                Mode = 'Test'
+            }
+            $r = Invoke-ResourceConfiguration @splat
+            $r | Should be $true
+        }
+        It 'correctly returns value (2)' {
+            $configInfo = zConfiguration ConfigName {
+                Get-DscResource StubResource1A | Import-DscResource
+                StubResource1A ResourceName @{
+                    StringParam1 = 's1'
+                    BoolParam = $false
+                }
+            }
+            $splat = @{
+                DscResources = $configInfo.DscResources
+                ResourceConfig = $configInfo.ResourceConfigs.'[StubResource1A]ResourceName'
+                Mode = 'Test'
+            }
+            $r = Invoke-ResourceConfiguration @splat
+            $r | Should be $false
+        }
+    }
 }

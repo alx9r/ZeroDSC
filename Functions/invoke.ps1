@@ -4,42 +4,43 @@ function Invoke-ProcessConfiguration
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [ValidateScript({$_ | Test-ValidConfigObject})]
-        [array]
-        $ConfigObjects
+        [ConfigInfo]
+        $ConfigInfo,
+
+        [ValidateSet('TestOnly')]
+        [string]
+        $Mode
     )
     process
     {
-        $instructions = $ConfigObjects | ConvertTo-Instructions
+    }
+}
 
-        while ( $invokedSomething )
-        {
-            $invokedSomething = $false
-            foreach ( $instructionName in $instructions.Keys )
-            {
-                $instruction = $instructions.$instructionName
-                if ( $instruction.Result -ne $null )
-                {
-                    # this instruction has already been processed
-                    next
-                }
-                if ( -not (Test-Prerequisites $instructionName $instructions) )
-                {
-                    # the prerequisites have not been met
-                    next
-                }
+function Invoke-ResourceConfiguration
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [System.Collections.Generic.Dictionary`2[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]
+        $DscResources,
 
-                $splat = @{
-                    Mode = @{
-                        $true = 'Test'
-                        $false = 'Set'
-                    }.$($instructions.TestOnly)
-                    Set  = { $instructions.Params | >> | & $instructions.SetCommandName }
-                    Test = { $instructions.Params | >> | & $instructions.TestCommandName }
-                }
-                $instruction.Result = Invoke-ProcessIdempotent @splat
-                $invokedSomething = $true
-            }
-        }
+        [ResourceConfigInfo]
+        $ResourceConfig,
+
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Mode
+    )
+    process
+    {
+        # find the correct resource
+        $resource = $DscResources[$ResourceConfig.ResourceName]
+
+        # create the invoker object
+        $invoker = $resource | New-ResourceInvoker
+
+        # invoke the configuration
+        $invoker.$Mode($ResourceConfig.Params)
     }
 }
