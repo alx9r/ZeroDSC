@@ -7,7 +7,8 @@ ZeroDSC directly invokes existing DSC resources without any dependence on the LC
 ## Uses
 
 * testing of DSC resources
-* bootstrapping Windows PowerShell DSC configuration
+* configuring prerequisites for automated testing
+* bootstrapping Windows PowerShell DSC setup
 * configuring resources in user contexts
 
 ## Comparison

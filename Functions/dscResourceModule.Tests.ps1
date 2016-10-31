@@ -49,42 +49,29 @@ Describe 'Import- and Remove-DscResource' {
     }
 }
 Describe 'sample configuration scriptblock' {
-    Context 'scriptblock created in module' {
-        InModuleScope ZeroDsc {
-            $sb = {
-                $records.'StubResource4A_1.0' | Import-DscResource
-
-                StubResource4A ConfigName @{
-                    StringParam1 = 's1'
-                    BoolParam = $true
-                }
-            }
-            It 'scriptblock returns items' {
-                $records.SbResults1 = & $sb
-            }
-        }
-    }
-    Context 'scriptblock created outside module then bound to module' {
-        $sb = {
-            $records.'StubResource4A_1.0' | Import-DscResource
+    It 'create the scriptblock' {
+        $records.BoundScriptBlock = (Get-Module ZeroDsc).NewBoundScriptBlock({
+            Get-DscResource StubResource4A |
+                ? { $_.Version -eq '1.0' } |
+                Import-DscResource
 
             StubResource4A ConfigName @{
                 StringParam1 = 's1'
                 BoolParam = $true
             }
-        }
-        It 'bind the scriptblock to the module' {
-            $records.BoundScriptBlock = (Get-Module ZeroDsc).NewBoundScriptBlock($sb)
-        }
-        It 'returns items' {
-            $records.SbResults2 = & $records.BoundScriptBlock
-        }
+        })
     }
-    It 'items includes the DscResourceInfo object' {
-        $records.SbResults1[0] | Should be $records.'StubResource4A_1.0'
+    It 'returns items' {
+        $records.SbResults2 = & $records.BoundScriptBlock
+        $records.SbResults2 | Should not beNullOrEmpty
+    }
+    It 'items includes a DscResourceInfo object that seems right' {
+        $records.SbResults2[0] | Should beOfType ([Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo])
+        $records.SbResults2[0].ResourceType | Should be $records.'StubResource4A_1.0'.ResourceType
+        $records.SbResults2[0].Path | Should be $records.'StubResource4A_1.0'.Path
     }
     It 'items includes a ResourceConfigInfo object' {
-        $records.SbResults1[1].GetType() |
+        $records.SbResults2[1].GetType() |
             Should be 'ResourceConfigInfo'
-    }
+    }    
 }

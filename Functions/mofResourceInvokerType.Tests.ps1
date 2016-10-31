@@ -77,30 +77,42 @@ Describe Get-MofResourceCommands {
 }
 
 Describe Invoke-MofResourceCommand {
-    $c = $records.StubResource1AFriendlyName.DscResource | Get-MofResourceCommands
-    $p = @{
-        StringParam1 = 's1'
-        BoolParam = $true
-    }
-    It 'import the module' {
-        # this task is normally handled by the ResourceInvoker constructor
-        $records.StubResource1AFriendlyName.DscResource.Path |
-            Import-Module
-    }
-    Context 'mock' {
-        Mock 'StubResource1A\Test-TargetResource' -Verifiable { 'return value' }
-        It 'correctly returns value' {
-            $r = Invoke-MofResourceCommand test -Params $p -CommandInfo $c
-            $r | Should be 'return value'
-        }
-        It 'correctly invokes Test-TargetResource' {
-            Assert-MockCalled 'StubResource1A\Test-TargetResource' -Times 1 {
-                $StringParam1 -eq 's1' -and
-                $BoolParam -eq $true
+    InModuleScope ZeroDsc {
+        Context 'mock' {
+            $rsrc = Get-DscResource StubResource1A
+            $c = $rsrc | Get-MofResourceCommands
+            $p = @{
+                StringParam1 = 's1'
+                BoolParam = $true
+            }
+            It 'import the module' {
+                # this task is normally handled by the ResourceInvoker constructor
+                $rsrc.Path | Import-Module
+            }
+            Mock 'Test-TargetResource' -Verifiable { 'return value' }
+            It 'correctly returns value' {
+                $r = Invoke-MofResourceCommand test -Params $p -CommandInfo $c
+                $r | Should be 'return value'
+            }
+            It 'correctly invokes Test-TargetResource' {
+                Assert-MockCalled 'Test-TargetResource' -Times 1 {
+                    $StringParam1 -eq 's1' -and
+                    $BoolParam -eq $true
+                }
             }
         }
     }
     Context 'stub' {
+        $c = $records.StubResource1AFriendlyName.DscResource | Get-MofResourceCommands
+        $p = @{
+            StringParam1 = 's1'
+            BoolParam = $true
+        }
+        It 'import the module' {
+            # this task is normally handled by the ResourceInvoker constructor
+            $records.StubResource1AFriendlyName.DscResource.Path |
+                Import-Module
+        }
         It 'returns value' {
             $r = Invoke-MofResourceCommand get -Params $p -CommandInfo $c
             $r | Should be 's1'

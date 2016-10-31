@@ -10,18 +10,18 @@ Describe 'Test Environment' {
         $records.DscResource = Get-DscResource StubResource1A
     }
     It 'create a resourceConfigInfo' {
-        $records.ResourceConfigInfo =  & {
+        $records.ResourceConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
             Set-Alias ResourceName New-ResourceConfigInfo
             ResourceName ConfigName @{}
-        }
+        })
     }
 }
 
 Describe ConfigInfo {
-    InModuleScope ZeroDsc {
-        It 'creates new object' {
-            $records.ConfigInfo = [ConfigInfo]::new('name')
-        }
+    It 'creates new object' {
+        $records.ConfigInfo = & (Get-Module ZeroDsc).NewBoundScriptBlock({
+            [ConfigInfo]::new('name')
+        })
     }
     It '.DscResources is initialized' {
         $records.ConfigInfo.DscResources |
