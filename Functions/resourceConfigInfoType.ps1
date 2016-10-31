@@ -6,7 +6,7 @@ class ResourceConfigInfo {
 
 class AggregateConfigInfo : ResourceConfigInfo {}
 
-Set-Alias Aggregate New-AggregateConfigInfo
+Set-Alias Aggregate New-ResourceConfigInfo
 
 function New-ResourceConfigInfo
 {
