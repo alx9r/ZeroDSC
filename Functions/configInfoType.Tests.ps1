@@ -9,10 +9,16 @@ Describe 'Test Environment' {
     It 'retrieve a DscResource' {
         $records.DscResource = Get-DscResource StubResource1A
     }
-    It 'create a resourceConfigInfo' {
+    It 'create a ResourceConfigInfo' {
         $records.ResourceConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
             Set-Alias ResourceName New-ResourceConfigInfo
-            ResourceName ConfigName @{}
+            ResourceName ResourceConfigName @{}
+        })
+    }
+    It 'create an AggregateConfigInfo' {
+        $records.AggregateConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
+            Set-Alias Aggregate New-ResourceConfigInfo
+            Aggregate AggregateConfigName @{}
         })
     }
 }
@@ -59,8 +65,19 @@ Describe ConfigInfo {
                 Should be 1
         }
         It 'retrieve that item by name' {
-            $records.ConfigInfo.ResourceConfigs.'[ResourceName]ConfigName' |
+            $records.ConfigInfo.ResourceConfigs.'[ResourceName]ResourceConfigName' |
                 Should be $records.ResourceConfigInfo
+        }
+        It 'add an AggregateConfigInfo object' {
+            $records.ConfigInfo.Add( $records.AggregateConfigInfo )
+        }
+        It '.ResourceConfigs has two items' {
+            $records.ConfigInfo.ResourceConfigs.Count |
+                Should be 2            
+        }
+        It 'retrieve that item by name' {
+            $records.ConfigInfo.ResourceConfigs.'[Aggregate]AggregateConfigName' |
+                Should be $records.AggregateConfigInfo
         }
     }
     Context 'duplicates' {
