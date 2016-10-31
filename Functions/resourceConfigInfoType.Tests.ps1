@@ -16,7 +16,20 @@ Describe New-ResourceConfigInfo {
         $r = Invoke-Command {
             ResourceName
         }
-        $r.ResourceName | Should be ResourceName
+        $r.ResourceName | Should be 'ResourceName'
+    }
+    It 'the object type is ResourceConfigInfo...' {
+        Set-Alias ResourceName New-ResourceConfigInfo
+        $r = Invoke-Command {
+            ResourceName
+        }
+        $r.GetType() | Should be 'ResourceConfigInfo'
+    }
+    It '...except when the resource name is Aggregate' {
+        $r = Invoke-Command {
+            Aggregate
+        }
+        $r.GetType() | Should be 'AggregateConfigInfo'
     }
     It 'correctly populates the ConfigName property' {
         $r = New-ResourceConfigInfo ConfigName

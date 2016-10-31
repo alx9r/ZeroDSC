@@ -4,6 +4,10 @@ class ResourceConfigInfo {
     [string] $ConfigName
 }
 
+class AggregateConfigInfo : ResourceConfigInfo {}
+
+Set-Alias Aggregate New-AggregateConfigInfo
+
 function New-ResourceConfigInfo
 {
     [CmdletBinding()]
@@ -19,10 +23,18 @@ function New-ResourceConfigInfo
     )
     process
     {
-        $configInfo = [ResourceConfigInfo]::new()
+        $resourceName = $PSCmdlet.MyInvocation.Line | Get-ResourceNameFromInvocationLine
+        if ( $resourceName -eq 'Aggregate' )
+        {
+            $configInfo = [AggregateConfigInfo]::new()
+        }
+        else
+        {
+            $configInfo = [ResourceConfigInfo]::new()
+        }
         $configInfo.Params = $Params
         $configInfo.ConfigName = $ConfigName
-        $configInfo.ResourceName = $PSCmdlet.MyInvocation.Line | Get-ResourceNameFromInvocationLine
+        $configInfo.ResourceName = $resourceName
         return $configInfo
     }
 }
