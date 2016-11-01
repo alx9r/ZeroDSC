@@ -16,13 +16,18 @@ class ConfigInfo
         $this.ResourceConfigs = New-Object "System.Collections.Generic.Dictionary``2[System.String,ResourceConfigInfo]"
     }
 
-    Add( [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $item )
+    Add( $item )
     {
-        $this.DscResources.Add($item.ResourceType,$item)
-    }
-
-    Add( [ResourceConfigInfo] $item )
-    {
-        $this.ResourceConfigs.Add(($item | ConvertTo-ConfigPath), $item)
+        if ( $item -is [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] )
+        {
+            $this.DscResources.Add($item.ResourceType,$item)
+            return
+        }
+        if ( $item -is [ResourceConfigInfo] )
+        {
+            $this.ResourceConfigs.Add($item.GetConfigPath(), $item)
+            return
+        }
+        throw 'Could not add $item because it is an unrecognized type.'
     }
 }

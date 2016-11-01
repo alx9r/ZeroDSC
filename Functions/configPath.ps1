@@ -81,7 +81,7 @@ function Test-ValidResourceName
             &(Publish-Failure 'ResourceName cannot be Null or Empty String','String' ([System.ArgumentException]))
             return $false
         }
-        if ( $String -notmatch '^[0-9a-zA-Z]*$' )
+        if ( $String -notmatch '^[0-9a-zA-Z\-_]*$' )
         {
             &(Publish-Failure "$String is not a valid ResourceName",'String' ([System.ArgumentException]))
             return $false
@@ -104,7 +104,7 @@ function Test-ValidConfigName
             &(Publish-Failure 'ConfigName cannot be Null or Empty String','String' ([System.ArgumentException]))
             return $false
         }
-        if ( $String -notmatch '^[0-9a-zA-Z]*$' )
+        if ( $String -notmatch '^[0-9a-zA-Z\-_]*$' )
         {
             &(Publish-Failure "$String is not a valid ConfigName",'String' ([System.ArgumentException]))
             return $false

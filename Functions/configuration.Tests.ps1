@@ -21,6 +21,8 @@ Describe 'Configuration sample' {
                 BoolParam = $true
             }
         }
+        $records.Sample1Result |
+            Should not beNullOrEmpty
     }
     It 'has the correct name' {
         $records.Sample1Result.Name |

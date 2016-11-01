@@ -100,9 +100,17 @@ Describe Test-ValidConfigName {
         { 'Config[Name' | Test-ValidConfigName -ea Stop } |
             Should throw 'Config[Name'
     }
-    It 'return true on ConfigName' {
-        $r = 'ConfigName' | Test-ValidConfigName
-        $r | Should be $true
+    foreach ( $string in @(
+            'ConfigName'
+            'Config-Name'
+            'Config_Name'
+        )
+    )
+    {
+        It "return true on $string" {
+            $r = $string | Test-ValidConfigName
+            $r | Should be $true
+        }
     }
     It 'throws on empty string' {
         { [string]::Empty | Test-ValidConfigName -ea Stop } |
@@ -118,9 +126,17 @@ Describe Test-ValidResourceName {
         { 'Resource[Name' | Test-ValidResourceName -ea Stop } |
             Should throw 'Resource[Name'
     }
-    It 'return true on ResourceName' {
-        $r = 'ResourceName' | Test-ValidResourceName
-        $r | Should be $true
+    foreach ( $string in @(
+            'ResourceName'
+            'Resource-Name'
+            'Resource_Name'
+        )
+    )
+    {
+        It "return true on $string" {
+            $r = $string | Test-ValidResourceName
+            $r | Should be $true
+        }
     }
     It 'throws on empty string' {
         { [string]::Empty | Test-ValidResourceName -ea Stop } |
