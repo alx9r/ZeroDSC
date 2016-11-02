@@ -29,21 +29,21 @@ Describe 'Configuration sample' {
             Should be 'ConfigName'
     }
     It 'has the correct DSC Resource' {
-        $records.Sample1Result.DscResources.StubResource1A.ResourceType |
+        $records.Sample1Result.DscResources[0].ResourceType |
             Should be StubResource1A
     }
     It 'has the correct resource in ResourceConfigs' {
-        $r = $records.Sample1Result.ResourceConfigs.'[StubResource1A]ResourceName'
+        $r = $records.Sample1Result.ResourceConfigs[0]
         $r.Params.StringParam1 | Should be 's1'
         $r.Params.BoolParam | Should be $true
-        $r.ResourceName | Should be StubResource1A
+        $r.InvocationInfo.PositionMessage | Should match $($PSCommandPath | Split-Path -Leaf)
         $r.ConfigName | Should be ResourceName
     }
     It 'has the correct aggregate in ResourceConfigs' {
-        $r = $records.Sample1Result.ResourceConfigs.'[Aggregate]AggregateName'
+        $r = $records.Sample1Result.ResourceConfigs[1]
         $r.Params.StringParam1 | Should be 's1'
         $r.Params.BoolParam | Should be $true
-        $r.ResourceName | Should be Aggregate
+        $r.InvocationInfo.PositionMessage | Should match $($PSCommandPath | Split-Path -Leaf)
         $r.ConfigName | Should be AggregateName
     }
 }

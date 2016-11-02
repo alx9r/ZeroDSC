@@ -3,31 +3,24 @@ class ConfigInfo
     [string]
     $Name
 
-    [System.Collections.Generic.Dictionary`2[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]
-    $DscResources
+    [System.Collections.Generic.List[Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]
+    $DscResources = (New-Object System.Collections.Generic.List[Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo])
 
-    [System.Collections.Generic.Dictionary`2[System.String,ResourceConfigInfo]]
-    $ResourceConfigs
+    [System.Collections.Generic.List[RawResourceConfigInfo]]
+    $ResourceConfigs = (New-Object System.Collections.Generic.List[RawResourceConfigInfo])
 
     ConfigInfo([string] $name) 
     {
         $this.Name = $name
-        $this.DscResources = New-Object "System.Collections.Generic.Dictionary``2[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]"
-        $this.ResourceConfigs = New-Object "System.Collections.Generic.Dictionary``2[System.String,ResourceConfigInfo]"
     }
 
-    Add( $item )
+    Add( [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $item )
     {
-        if ( $item -is [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] )
-        {
-            $this.DscResources.Add($item.ResourceType,$item)
-            return
-        }
-        if ( $item -is [ResourceConfigInfo] )
-        {
-            $this.ResourceConfigs.Add($item.GetConfigPath(), $item)
-            return
-        }
-        throw 'Could not add $item because it is an unrecognized type.'
+        $this.DscResources.Add($item)
+    }
+
+    Add ( [RawResourceConfigInfo]  $item )
+    {
+        $this.ResourceConfigs.Add($item)
     }
 }

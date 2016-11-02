@@ -32,6 +32,7 @@ Describe Invoke-ProcessConfiguration {
     Context 'two instructions, one prerequisite, first after second, fail second' {}
 }
 #>
+<#
 Describe 'Invoke-ResourceConfiguration' {
     Context 'stub' {
         It 'correctly returns value (1)' {
@@ -68,3 +69,4 @@ Describe 'Invoke-ResourceConfiguration' {
         }
     }
 }
+#>

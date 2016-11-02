@@ -1,3 +1,9 @@
+class RawResourceConfigInfo {
+    [hashtable] $Params
+    [string] $ConfigName
+    [System.Management.Automation.InvocationInfo]$InvocationInfo
+}
+
 class ResourceConfigInfo {
     [hashtable] $Params
 
@@ -31,37 +37,83 @@ class ResourceConfigInfo {
 
 class AggregateConfigInfo : ResourceConfigInfo {}
 
-Set-Alias Aggregate New-ResourceConfigInfo
+Set-Alias Aggregate New-RawResourceConfigInfo
 
-function New-ResourceConfigInfo
+function New-RawResourceConfigInfo
 {
     [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
         [string]
         $ConfigName,
 
-        [ValidateNotNull()]
         [hashtable]
         $Params
     )
     process
     {
-        $resourceName = $PSCmdlet.MyInvocation.Line | Get-ResourceNameFromInvocationLine
+        $outputObject = [RawResourceConfigInfo]::new()
+        $outputObject.Params = $Params
+        $outputObject.ConfigName = $ConfigName
+        $outputObject.InvocationInfo = $PSCmdlet.MyInvocation
+        return $outputObject
+    }
+}
+
+function ConvertTo-ResourceConfigInfo
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(ValueFromPipeline = $true)]
+        [RawResourceConfigInfo]
+        $InputObject
+    )
+    process
+    {
+        # try to extract the resource name
+        $resourceName = $InputObject.InvocationInfo.Line | Get-ResourceNameFromInvocationLine
+        
+        # create the right object type
         if ( $resourceName -eq 'Aggregate' )
         {
-            $configInfo = [AggregateConfigInfo]::new()
+            $outputObject = New-Object AggregateConfigInfo
         }
         else
         {
-            $configInfo = [ResourceConfigInfo]::new()
+            $outputObject = New-Object ResourceConfigInfo
         }
-        $configInfo.Params = $Params
-        $configInfo.ConfigName = $ConfigName
-        $configInfo.ResourceName = $resourceName
-        return $configInfo
+
+        # validate properties
+        foreach ( $propertyName in 'ConfigName','ResourceName' )
+        {
+            try
+            {
+                @{
+                    ConfigName = $InputObject.ConfigName
+                    ResourceName = $resourceName
+                }.$propertyName | & "Test-Valid$propertyName" -ErrorAction Stop | Out-Null
+
+            }
+            catch 
+            {
+                throw New-Object System.FormatException(
+                    @"
+$propertyName Error
+$($InputObject.InvocationInfo.PositionMessage)
+$($_.Exception.Message)
+"@
+                )
+            }
+        }
+
+        # assign the properties from the input object to the output object
+        $outputObject.ConfigName = $InputObject.ConfigName
+        $outputObject.ResourceName = $resourceName
+        $outputObject.Params = $InputObject.Params
+
+        # return the output obj
+        return $outputObject
     }
 }
 

@@ -30,7 +30,7 @@ Describe 'Import- and Remove-DscResource' {
         }
         It 'the alias is for New-ResourceConfigInfo' {
             $r = Get-Alias StubResource4A -ea Stop
-            $r.ResolvedCommandName | Should be New-ResourceConfigInfo
+            $r.ResolvedCommandName | Should be New-RawResourceConfigInfo
         }
     }
     It 'but not outside modulescope' {
@@ -72,6 +72,6 @@ Describe 'sample configuration scriptblock' {
     }
     It 'items includes a ResourceConfigInfo object' {
         $records.SbResults2[1].GetType() |
-            Should be 'ResourceConfigInfo'
+            Should be 'RawResourceConfigInfo'
     }    
 }

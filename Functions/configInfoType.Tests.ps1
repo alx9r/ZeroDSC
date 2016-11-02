@@ -11,13 +11,13 @@ Describe 'Test Environment' {
     }
     It 'create a ResourceConfigInfo' {
         $records.ResourceConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
-            Set-Alias ResourceName New-ResourceConfigInfo
+            Set-Alias ResourceName New-RawResourceConfigInfo
             ResourceName ResourceConfigName @{}
         })
     }
     It 'create an AggregateConfigInfo' {
         $records.AggregateConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
-            Set-Alias Aggregate New-ResourceConfigInfo
+            Set-Alias Aggregate New-RawResourceConfigInfo
             Aggregate AggregateConfigName @{}
         })
     }
@@ -30,12 +30,12 @@ Describe ConfigInfo {
         })
     }
     It '.DscResources is initialized' {
-        $records.ConfigInfo.DscResources |
-            Should not be $null
+        $null -ne $records.ConfigInfo.DscResources |
+            Should be $true
     }
     It '.ResourceConfigs is initialized' {
-        $records.ConfigInfo.ResourceConfigs |
-            Should not be $null
+        $null -ne $records.ConfigInfo.ResourceConfigs |
+            Should be $true
     }
     Context '.Add()' {
         It '.DscResources starts out empty' {
@@ -49,8 +49,8 @@ Describe ConfigInfo {
             $records.ConfigInfo.DscResources.Count |
                 Should be 1
         }
-        It 'retrieve that item by name' {
-            $records.ConfigInfo.DscResources.StubResource1A |
+        It 'retrieve that item by index' {
+            $records.ConfigInfo.DscResources[0] |
                 Should be $records.DscResource
         }
         It '.ResourceConfigs starts out empty' {
@@ -64,8 +64,8 @@ Describe ConfigInfo {
             $records.ConfigInfo.ResourceConfigs.Count |
                 Should be 1
         }
-        It 'retrieve that item by name' {
-            $records.ConfigInfo.ResourceConfigs.'[ResourceName]ResourceConfigName' |
+        It 'retrieve that item by index' {
+            $records.ConfigInfo.ResourceConfigs[0] |
                 Should be $records.ResourceConfigInfo
         }
         It 'add an AggregateConfigInfo object' {
@@ -75,15 +75,9 @@ Describe ConfigInfo {
             $records.ConfigInfo.ResourceConfigs.Count |
                 Should be 2            
         }
-        It 'retrieve that item by name' {
-            $records.ConfigInfo.ResourceConfigs.'[Aggregate]AggregateConfigName' |
+        It 'retrieve that item by index' {
+            $records.ConfigInfo.ResourceConfigs[1] |
                 Should be $records.AggregateConfigInfo
-        }
-    }
-    Context 'duplicates' {
-        It 'throws on adding a duplicate' {
-            { $records.ConfigInfo.Add( $records.ResourceConfigInfo ) } |
-                Should throw 'same key'
         }
     }
 }
