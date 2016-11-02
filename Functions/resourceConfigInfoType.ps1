@@ -7,27 +7,25 @@ class RawResourceConfigInfo {
 class ResourceConfigInfo {
     [hashtable] $Params
 
-    hidden [string] $_ResourceName = $($this | Add-Member ScriptProperty 'ResourceName' `
-        { # get
+    hidden [string] $_ResourceName = $($this | Add-Member ScriptProperty 'ResourceName' { 
+            # get
             $this._ResourceName
-        }`
-        { # set
+        } { 
+            # set
             param ( [string] $ResourceName )
             $ResourceName | Test-ValidResourceName -ErrorAction Stop
             $this._ResourceName = $ResourceName
-        }
-    )
+        })
 
-    hidden [string] $_ConfigName = $($this | Add-Member ScriptProperty 'ConfigName' `
-        { # get
+    hidden [string] $_ConfigName = $($this | Add-Member ScriptProperty 'ConfigName' {
+            # get
             $this._ConfigName
-        }`
-        { # set
+        } { 
+            # set
             param ( [string] $ConfigName )
             $ConfigName | Test-ValidConfigName -ErrorAction Stop
             $this._ConfigName = $ConfigName
-        }
-    )
+        })
 
     [string] GetConfigPath() 
     { 
