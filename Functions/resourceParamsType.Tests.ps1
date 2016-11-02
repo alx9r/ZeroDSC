@@ -84,3 +84,57 @@ Describe 'AggregateParams' {
         }
     }
 }
+Describe ConvertTo-ResourceParams {
+    It 'returns exactly one object' {
+        $r = @{} | ConvertTo-ResourceParams
+        $r.Count | Should be 1
+    }
+    It 'returns an object of type ResourceParams...' {
+        $r = @{} | ConvertTo-ResourceParams
+        $r.GetType() | Should be 'ResourceParams'
+    }
+    It '...except when ResourceName is aggregate' {
+        $r = @{
+            Type = 'Count'
+            Test = '-gt 0'
+        } | ConvertTo-ResourceParams Aggregate
+        $r.GetType() | Should be 'AggregateParams'
+    }
+    Context 'known hashtable entries become properties (ResourceParams)' {
+        foreach ( $property in @(
+                @('ComputerName','computer.domain.com'),
+                @('PSRunAsCredential',(New-Object pscredential('bogus', ('bogus' | ConvertTo-SecureString -AsPlainText -Force)))),
+                @('DependsOn','[ResourceName]ConfigName')
+            )
+        )
+        {
+            $propertyName = $property[0]
+            $propertyValue = $property[1]
+            It "$propertyName becomes a property" {
+                $r = @{ $propertyName = $propertyValue } |
+                    ConvertTo-ResourceParams
+                $r.$propertyName | Should be $propertyValue
+            }
+            It "$propertyName is removed from Params hashtable" {
+                $r = @{ $propertyName = $propertyValue } |
+                    ConvertTo-ResourceParams
+                $r.Params.Keys -contains $propertyName | Should be $false
+            }
+        }
+    }
+    Context 'known hashtable entries become properties (AggregateParams)' {}
+    It 'unknown hashtable entries end up in Params hashtable' {
+        $r = @{Unknown = 'value'} | ConvertTo-ResourceParams
+        $r.Params.Unknown | Should be 'value'
+    }
+    Context 'AggregateParams' {
+        It 'throws when Type is missing' {
+            { @{ Test = '-gt 0' } | ConvertTo-ResourceParams Aggregate } |
+                Should throw 'Params is missing mandatory entry'
+        }
+        It 'throws when Test is missing' {
+            { @{ Type = 'Count' } | ConvertTo-ResourceParams Aggregate } |
+                Should throw 'Params is missing mandatory entry'
+        }
+    }
+}
