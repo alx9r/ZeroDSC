@@ -81,3 +81,27 @@ Describe RawConfigInfo {
         }
     }
 }
+
+Describe ConvertTo-ConfigInfo {
+    It 'creates exactly one new object' {}
+    It 'the object type is ConfigInfo' {}
+    It 'correctly populates Name' {}
+    Context 'duplicate ConfigName' {
+        It 'throws correct exception type' {}
+        It 'the exception shows the filename of the offending call' {}
+        It 'the exceptions shows the line number of the offending call' {}
+        It 'the exception contains an informative message' {}
+    }
+    Context 'convert config info and bind to resources' {
+        It 'correctly invokes ConvertTo-ResourceConfigInfo' {}
+        It 'passes that result to ConvertTo-BoundResource' {}
+        It 'correctly adds result of ConvertTo-BoundResource to Resources' {}
+        It 'correctly invokes ConvertTo-BoundResource' {}
+    }
+    Context 'bad resource binding' {
+        It 'throws correct exception type' {}
+        It 'the exception shows the filename of the offending call' {}
+        It 'the exceptions shows the line number of the offending call' {}
+        It 'the exception contains an informative message' {}
+    }
+}

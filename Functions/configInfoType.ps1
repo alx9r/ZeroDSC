@@ -24,3 +24,26 @@ class RawConfigInfo
         $this.ResourceConfigs.Add($item)
     }
 }
+
+class ConfigInfo
+{
+    [string]
+    $Name
+
+    $Resources = (New-Object 'System.Collections.Generic.Dictionary`2[System.String,BoundResourceBase]')
+}
+
+
+function ConvertTo-ConfigInfo
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(ValueFromPipeline = $true)]
+        [RawConfigInfo]
+        $InputObject
+    )
+    process
+    {
+    }
+}
