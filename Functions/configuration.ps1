@@ -13,7 +13,7 @@ function zConfiguration
     process 
     {
         $items = & (Get-Module ZeroDsc).NewBoundScriptBlock($ScriptBlock)
-        $configInfo = [ConfigInfo]::new($Name)
+        $configInfo = [RawConfigInfo]::new($Name)
         foreach ( $item in $items )
         {
             $configInfo.Add($item)

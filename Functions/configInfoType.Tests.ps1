@@ -23,10 +23,10 @@ Describe 'Test Environment' {
     }
 }
 
-Describe ConfigInfo {
+Describe RawConfigInfo {
     It 'creates new object' {
         $records.ConfigInfo = & (Get-Module ZeroDsc).NewBoundScriptBlock({
-            [ConfigInfo]::new('name')
+            [RawConfigInfo]::new('name')
         })
     }
     It '.DscResources is initialized' {

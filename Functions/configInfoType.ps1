@@ -1,4 +1,4 @@
-class ConfigInfo
+class RawConfigInfo
 {
     [string]
     $Name
@@ -9,7 +9,7 @@ class ConfigInfo
     [System.Collections.Generic.List[RawResourceConfigInfo]]
     $ResourceConfigs = (New-Object System.Collections.Generic.List[RawResourceConfigInfo])
 
-    ConfigInfo([string] $name) 
+    RawConfigInfo([string] $name) 
     {
         $this.Name = $name
     }
