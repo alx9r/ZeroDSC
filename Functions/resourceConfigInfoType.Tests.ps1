@@ -65,6 +65,11 @@ Describe ConvertTo-ResourceConfigInfo {
             ConvertTo-ResourceConfigInfo
         $r.ResourceName | Should be 'ResourceName'
     }
+    It 'correctly populates the InvocationInfo property' {
+        $raw = New-RawResourceConfigInfo ConfigName
+        $r = $raw | ConvertTo-ResourceConfigInfo
+        $r.InvocationInfo | Should be $raw.InvocationInfo
+    }
     It '.GetConfigPath() works' {
         $r = New-RawResourceConfigInfo ConfigName |
             ConvertTo-ResourceConfigInfo

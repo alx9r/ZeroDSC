@@ -6,6 +6,7 @@ class RawResourceConfigInfo {
 
 class ResourceConfigInfo {
     [ResourceParamsBase] $Params
+    [System.Management.Automation.InvocationInfo]$InvocationInfo
 
     hidden [string] $_ResourceName = $($this | Add-Member ScriptProperty 'ResourceName' { 
             # get
@@ -84,7 +85,7 @@ function ConvertTo-ResourceConfigInfo
 
         # Process and assign the properties such that the call site of an
         # offending configuration document is included in exception.
-        foreach ( $propertyName in 'ConfigName','ResourceName','Params' )
+        foreach ( $propertyName in 'ConfigName','ResourceName','Params','InvocationInfo' )
         {
             try
             {
@@ -95,6 +96,7 @@ function ConvertTo-ResourceConfigInfo
                         $outputObject.Params = $InputObject.Params | 
                             ConvertTo-ResourceParams $InputObject.ConfigName 
                     }
+                    InvocationInfo = { $outputObject.InvocationInfo = $InputObject.InvocationInfo }
                 }.$propertyName 
 
                 & $sb | Out-Null
