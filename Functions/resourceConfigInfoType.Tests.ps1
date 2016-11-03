@@ -65,15 +65,30 @@ Describe ConvertTo-ResourceConfigInfo {
             ConvertTo-ResourceConfigInfo
         $r.ResourceName | Should be 'ResourceName'
     }
-    It 'correctly populates the Params property' {
-        $r = New-RawResourceConfigInfo ConfigName @{p1 = 'p'} |
-            ConvertTo-ResourceConfigInfo
-        $r.Params.p1 | Should be 'p'
-    }
     It '.GetConfigPath() works' {
         $r = New-RawResourceConfigInfo ConfigName |
             ConvertTo-ResourceConfigInfo
         $r.GetConfigPath() | Should be '[New-RawResourceConfigInfo]ConfigName'
+    }
+    InModuleScope ZeroDsc {    
+        foreach ( $typeName in 'ResourceParams','AggregateParams' )
+        {
+            Context "Params [$typeName]" {
+                $object = New-Object $typeName
+                Mock ConvertTo-ResourceParams -Verifiable {$object}
+                It 'it correctly assigns result of ConvertTo-ResourceParams to Params' {
+                    $r = New-RawResourceConfigInfo ConfigName @{p=1} |
+                        ConvertTo-ResourceConfigInfo
+                    $r.Params | Should be $object
+                }
+                It 'correctly invokes ConvertTo-ResourceParams' {
+                    Assert-MockCalled ConvertTo-ResourceParams -Times 1 {
+                        $ResourceName -eq 'ConfigName' -and
+                        $Params.p -eq 1
+                    }
+                }
+            }
+        }
     }
     Context 'bad ResourceName' {
         $h = @{}
@@ -81,6 +96,7 @@ Describe ConvertTo-ResourceConfigInfo {
             Set-Alias "bad>name" New-RawResourceConfigInfo
             try
             {
+                $h.CallSite = & {$MyInvocation}
                 bad>name ConfigName |
                     ConvertTo-ResourceConfigInfo
             }
@@ -91,8 +107,11 @@ Describe ConvertTo-ResourceConfigInfo {
             }
             $threw | Should be $true
         }
-        It 'the exception shows the filename of the offending ResourceName' {
+        It 'the exception shows the filename of the offending call' {
             $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+        }
+        It 'the exception shows the line number of the offending call' {
+            $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+1)"
         }
         It 'the exception contains an informative message' {
             $h.Exception.ToString() | Should match 'not a valid ResourceName'
@@ -103,6 +122,7 @@ Describe ConvertTo-ResourceConfigInfo {
         It 'throws correct exception type' {
             try
             {
+                $h.CallSite = & {$MyInvocation}
                 New-RawResourceConfigInfo 'Config[Name' |
                     ConvertTo-ResourceConfigInfo
             }
@@ -113,17 +133,44 @@ Describe ConvertTo-ResourceConfigInfo {
             }
             $threw | Should be $true
         }
-        It 'the exception shows the filename of the offending ConfigName' {
+        It 'the exception shows the filename of the offending call' {
             $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+        }
+        It 'the exception shows the line number of the offending call' {
+            $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+1)"
         }
         It 'the exception contains an informative message' {
             $h.Exception.ToString() | Should match 'not a valid ConfigName'
         }
     }
     Context 'bad Params' {
-        It 'throws correct exception type' {}
-        It 'the exception show the filename of the offending parameter' {}
-        It 'the exception contains an informative message' {}
+        InModuleScope ZeroDsc {
+            $h = @{}
+            Mock ConvertTo-ResourceParams {throw 'mock exception'}
+            It 'throws correct exception type' {
+                try
+                {
+                    $h.CallSite = & {$MyInvocation}
+                    New-RawResourceConfigInfo 'ConfigName' |
+                        ConvertTo-ResourceConfigInfo
+                }
+                catch [FormatException]
+                {
+                    $threw = $true
+                    $h.Exception =$_
+                }
+                $threw | Should be $true
+            }
+            It 'the exception show the filename of the offending parameter' {
+                $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+            }
+            It 'the exception shows the line number of the offending call' {
+                $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+1)"
+            }
+            It 'the exception contains an informative message' {
+                $h.Exception.ToString() | Should match 'mock exception'
+            }
+        }
     }
 }
 Describe Get-ResourceNameFromInvocationLine {

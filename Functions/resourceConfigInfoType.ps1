@@ -5,7 +5,7 @@ class RawResourceConfigInfo {
 }
 
 class ResourceConfigInfo {
-    [hashtable] $Params
+    [ResourceParamsBase] $Params
 
     hidden [string] $_ResourceName = $($this | Add-Member ScriptProperty 'ResourceName' { 
             # get
@@ -82,16 +82,22 @@ function ConvertTo-ResourceConfigInfo
             $outputObject = New-Object ResourceConfigInfo
         }
 
-        # validate properties
-        foreach ( $propertyName in 'ConfigName','ResourceName' )
+        # Process and assign the properties such that the call site of an
+        # offending configuration document is included in exception.
+        foreach ( $propertyName in 'ConfigName','ResourceName','Params' )
         {
             try
             {
-                @{
-                    ConfigName = $InputObject.ConfigName
-                    ResourceName = $resourceName
-                }.$propertyName | & "Test-Valid$propertyName" -ErrorAction Stop | Out-Null
+                $sb = @{
+                    ConfigName = { $outputObject.ConfigName = $InputObject.ConfigName }
+                    ResourceName = { $outputObject.ResourceName = $resourceName }
+                    Params = { 
+                        $outputObject.Params = $InputObject.Params | 
+                            ConvertTo-ResourceParams $InputObject.ConfigName 
+                    }
+                }.$propertyName 
 
+                & $sb | Out-Null
             }
             catch 
             {
@@ -105,12 +111,7 @@ $($_.Exception.Message)
             }
         }
 
-        # assign the properties from the input object to the output object
-        $outputObject.ConfigName = $InputObject.ConfigName
-        $outputObject.ResourceName = $resourceName
-        $outputObject.Params = $InputObject.Params
-
-        # return the output obj
+        # return the output object
         return $outputObject
     }
 }
