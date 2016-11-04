@@ -54,6 +54,34 @@ Describe 'ConvertTo-BoundResource' {
         $r = ConvertTo-BoundResource @resSplat
         $r.Resource | Should be $resSplat.Resource
     }
+    Context 'invoker (stub)' {
+        It 'correctly populates Invoker property' {
+            $r = ConvertTo-BoundResource @resSplat
+            $r.Invoker.ResourceInfo | Should be $resSplat.Resource
+        }
+    }
+    InModuleScope ZeroDsc {
+        Context 'invoker (mock)' {
+            $res = Get-DscResource StubResource1A
+            Mock New-ResourceInvoker -Verifiable {
+                [ResourceInvoker]::new($res)
+            }
+            It 'correctly invokes New-ResourceInvoker' {
+                $splat = @{
+                    Resource = $res
+                    Config = & (Get-Module ZeroDsc).NewBoundScriptBlock({
+                        Set-Alias ResourceName New-RawResourceConfigInfo
+                        ResourceName ResourceConfigName @{}
+                    }) |
+                        ConvertTo-ResourceConfigInfo
+                }
+                ConvertTo-BoundResource @splat
+                Assert-MockCalled New-ResourceInvoker -Times 1 {
+                    $DscResource.ResourceType -eq 'StubResource1A'
+                }
+            }
+        }
+    }
     It 'throws when Resource is missing' {
         { ConvertTo-BoundResource -Config $records.ResourceConfigInfo } |
             Should throw 'Resource argument is missing'

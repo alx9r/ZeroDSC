@@ -5,6 +5,9 @@ class BoundResourceBase {
 class BoundResource : BoundResourceBase {
     [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
     $Resource
+
+    [ResourceInvoker]
+    $Invoker
 }
 class BoundAggregate : BoundResourceBase {}
 
@@ -54,6 +57,7 @@ function ConvertTo-BoundResource
         {
             $outputObject = [BoundResource]::new()
             $outputObject.Resource = $Resource
+            $outputObject.Invoker = $Resource | New-ResourceInvoker
         }
 
         $outputObject.Config = $Config
