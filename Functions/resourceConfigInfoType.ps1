@@ -41,6 +41,7 @@ Set-Alias Aggregate New-RawResourceConfigInfo
 function New-RawResourceConfigInfo
 {
     [CmdletBinding()]
+    [OutputType([RawResourceConfigInfo])]
     param
     (
         [string]
@@ -62,6 +63,7 @@ function New-RawResourceConfigInfo
 function ConvertTo-ResourceConfigInfo
 {
     [CmdletBinding()]
+    [OutputType([ResourceConfigInfo])]
     param
     (
         [Parameter(ValueFromPipeline = $true)]

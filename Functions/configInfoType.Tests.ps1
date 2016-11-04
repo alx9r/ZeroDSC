@@ -25,83 +25,197 @@ Describe 'Test Environment' {
 
 Describe RawConfigInfo {
     It 'creates new object' {
-        $records.ConfigInfo = & (Get-Module ZeroDsc).NewBoundScriptBlock({
+        $records.RawConfigInfo = & (Get-Module ZeroDsc).NewBoundScriptBlock({
             [RawConfigInfo]::new('name')
         })
     }
     It '.DscResources is initialized' {
-        $null -ne $records.ConfigInfo.DscResources |
+        $null -ne $records.RawConfigInfo.DscResources |
             Should be $true
     }
     It '.ResourceConfigs is initialized' {
-        $null -ne $records.ConfigInfo.ResourceConfigs |
+        $null -ne $records.RawConfigInfo.ResourceConfigs |
             Should be $true
     }
     Context '.Add()' {
         It '.DscResources starts out empty' {
-            $records.ConfigInfo.DscResources.Count |
+            $records.RawConfigInfo.DscResources.Count |
                 Should be 0
         }
         It 'add a DSC resource' {
-            $records.ConfigInfo.Add($records.DscResource)
+            $records.RawConfigInfo.Add($records.DscResource)
         }
         It '.DscResources has one item' {
-            $records.ConfigInfo.DscResources.Count |
+            $records.RawConfigInfo.DscResources.Count |
                 Should be 1
         }
         It 'retrieve that item by index' {
-            $records.ConfigInfo.DscResources[0] |
+            $records.RawConfigInfo.DscResources[0] |
                 Should be $records.DscResource
         }
         It '.ResourceConfigs starts out empty' {
-            $records.ConfigInfo.ResourceConfigs.Count |
+            $records.RawConfigInfo.ResourceConfigs.Count |
                 Should be 0
         }
         It 'add a ResourceConfigInfo object' {
-            $records.ConfigInfo.Add( $records.ResourceConfigInfo )
+            $records.RawConfigInfo.Add( $records.ResourceConfigInfo )
         }
         It '.ResourceConfigs has one item' {
-            $records.ConfigInfo.ResourceConfigs.Count |
+            $records.RawConfigInfo.ResourceConfigs.Count |
                 Should be 1
         }
         It 'retrieve that item by index' {
-            $records.ConfigInfo.ResourceConfigs[0] |
+            $records.RawConfigInfo.ResourceConfigs[0] |
                 Should be $records.ResourceConfigInfo
         }
         It 'add an AggregateConfigInfo object' {
-            $records.ConfigInfo.Add( $records.AggregateConfigInfo )
+            $records.RawConfigInfo.Add( $records.AggregateConfigInfo )
         }
         It '.ResourceConfigs has two items' {
-            $records.ConfigInfo.ResourceConfigs.Count |
+            $records.RawConfigInfo.ResourceConfigs.Count |
                 Should be 2            
         }
         It 'retrieve that item by index' {
-            $records.ConfigInfo.ResourceConfigs[1] |
+            $records.RawConfigInfo.ResourceConfigs[1] |
                 Should be $records.AggregateConfigInfo
         }
     }
 }
 
 Describe ConvertTo-ConfigInfo {
-    It 'creates exactly one new object' {}
-    It 'the object type is ConfigInfo' {}
-    It 'correctly populates Name' {}
-    Context 'duplicate ConfigName' {
-        It 'throws correct exception type' {}
-        It 'the exception shows the filename of the offending call' {}
-        It 'the exceptions shows the line number of the offending call' {}
-        It 'the exception contains an informative message' {}
+    It 'creates exactly one new object' {
+        $r = zConfiguration 'DocumentName' {} | ConvertTo-ConfigInfo
+        $r.Count | Should be 1
     }
-    Context 'convert config info and bind to resources' {
-        It 'correctly invokes ConvertTo-ResourceConfigInfo' {}
-        It 'passes that result to ConvertTo-BoundResource' {}
-        It 'correctly adds result of ConvertTo-BoundResource to Resources' {}
-        It 'correctly invokes ConvertTo-BoundResource' {}
+    It 'the object type is ConfigInfo' {
+        $r = zConfiguration 'DocumentName' {} | ConvertTo-ConfigInfo
+        $r.GetType() | Should be 'ConfigInfo'
     }
-    Context 'bad resource binding' {
-        It 'throws correct exception type' {}
+    It 'correctly populates Name' {
+        $r = zConfiguration 'DocumentName' {} | ConvertTo-ConfigInfo
+        $r.Name | Should be 'DocumentName'
+    }
+    InModuleScope ZeroDsc {
+        Context 'convert config info and bind to resources' {
+            $raw = zConfiguration 'DocumentName' {
+                Get-DscResource StubResource2A | Import-DscResource
+                Get-DscResource StubResource2B | Import-DscResource
+                StubResource2A ConfigName2A @{}
+            }
+            Mock ConvertTo-ResourceConfigInfo -Verifiable { 
+                $o = [ResourceConfigInfo]::new()
+                $o.ConfigName = 'ConfigName2A'
+                $o.ResourceName = 'StubResource2A'
+                $o
+            }
+            Mock ConvertTo-BoundResource -Verifiable {
+                $o = [BoundResourceBase]::new()
+                $o.Config = $Config
+                $o
+            }
+            It 'correctly invokes ConvertTo-ResourceConfigInfo' {
+                $raw | ConvertTo-ConfigInfo
+                Assert-MockCalled ConvertTo-ResourceConfigInfo -Times 1 {
+                    $InputObject.ConfigName -eq 'ConfigName2A'
+                }
+            }
+            It 'correctly passes that result and the correct resource type to ConvertTo-BoundResource' {
+                Assert-MockCalled ConvertTo-BoundResource -Times 1 {
+                    $Config.ConfigName -eq 'ConfigName2A' -and
+                    $Resource.ResourceType -eq 'StubResource2A'
+                }
+            }
+            It 'correctly adds result of ConvertTo-BoundResource to Resources' {
+                $o = $raw | ConvertTo-ConfigInfo
+                $r = $o.Resources.'[StubResource2A]ConfigName2A'
+                $r.Config.ConfigName | Should be 'ConfigName2A'
+                $r.Config.ResourceName | Should be 'StubResource2A'
+            }
+        }
+    }
+    Context 'duplicate config paths' {
+        $h = @{}
+        It 'throws correct exception type' {
+            $h.CallSite = & {$MyInvocation}            
+            $raw = zConfiguration 'DocumentName' {
+                Get-DscResource StubResource2A | Import-DscResource
+                StubResource2A ConfigName2A @{}
+                StubResource2A ConfigName2A @{}
+            }
+            try
+            {
+                $raw | ConvertTo-ConfigInfo 
+            }
+            catch [FormatException]
+            {
+                $h.Exception = $_
+            }
+            $h.Exception | Should not beNullOrEmpty
+        }
+        It 'the exception shows the filename of the offending call' {
+            $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+        }
+        It 'the exception shows the line number of the offending call' {
+            $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+4)"
+        }
+        It 'the exception contains an informative message' {
+            $h.Exception.ToString() | Should match 'Duplicate ConfigPath \[StubResource2A\]ConfigName2A'
+        }
+    }
+    Context 'duplicate Resources' {
+        $h = @{}
+        It 'throws correct exception type' {
+            $h.CallSite = & {$MyInvocation}            
+            $raw = zConfiguration 'DocumentName' {
+                Get-DscResource StubResource2A | Import-DscResource
+                Get-DscResource StubResource2A | Import-DscResource
+                StubResource2A ConfigName2A @{}
+            }
+            try
+            {
+                $raw | ConvertTo-ConfigInfo 
+            }
+            catch [FormatException]
+            {
+                $h.Exception = $_
+            }
+            $h.Exception | Should not beNullOrEmpty
+        }
         It 'the exception shows the filename of the offending call' {}
-        It 'the exceptions shows the line number of the offending call' {}
-        It 'the exception contains an informative message' {}
+        It 'the exception shows the line number of the offending call' {}
+        It 'the exception contains an informative message' {
+            $h.Exception.ToString() | Should match 'Duplicate resource type StubResource2A'
+        }
+    }
+    InModuleScope ZeroDsc {
+        Context 'bad resource binding' {
+            $h = @{}
+            Mock ConvertTo-BoundResource { throw 'mock resource binding exception message' }
+            It 'throws correct exception type' {
+                $h.CallSite = & {$MyInvocation}            
+                $raw = zConfiguration 'DocumentName' {
+                    Set-Alias ResourceName New-RawResourceConfigInfo
+                    ResourceName ResourceConfigName @{}
+                }
+                try
+                {
+                    $raw | ConvertTo-ConfigInfo 
+                }
+                catch [FormatException]
+                {
+                    $h.Exception = $_
+                }
+                $h.Exception | Should not beNullOrEmpty
+            }
+            It 'the exception shows the filename of the offending call' {
+                $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+            }
+            It 'the exception shows the line number of the offending call' {
+                $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+3)"
+            }
+            It 'the exception contains an informative message' {
+                $h.Exception.ToString() | Should match 'Error binding Config \[ResourceName\]ResourceConfigName to resource ResourceName'
+            }
+        }
     }
 }

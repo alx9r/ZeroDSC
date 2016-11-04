@@ -16,12 +16,12 @@ function ConvertTo-BoundResource
     [CmdletBinding()]
     param
     (
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $Resource,
+
         [Parameter(ValueFromPipeline = $true)]
         [ResourceConfigInfo]
-        $Config,
-
-        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
-        $Resource
+        $Config
     )
     process
     {
