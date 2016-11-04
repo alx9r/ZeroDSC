@@ -91,7 +91,7 @@ function New-ClassResourceObject
             {
                 $object = iex @"
                     using module $($module.Path)
-                    [$($DscResource.ResourceType)]::new()
+                    [$($DscResource.Name)]::new()
 "@
             }
             catch [System.Management.Automation.RuntimeException]
@@ -130,7 +130,7 @@ function New-ClassResourceObject
             return $object
         }
 
-        throw "Could not create class resource object for DSC Resource $($DscResource.ResourceType)"
+        throw "Could not create class resource object for DSC Resource $($DscResource.Name)"
     }
 }
 

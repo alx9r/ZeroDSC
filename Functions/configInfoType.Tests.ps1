@@ -122,7 +122,7 @@ Describe ConvertTo-ConfigInfo {
             It 'correctly passes that result and the correct resource type to ConvertTo-BoundResource' {
                 Assert-MockCalled ConvertTo-BoundResource -Times 1 {
                     $Config.ConfigName -eq 'ConfigName2A' -and
-                    $Resource.ResourceType -eq 'StubResource2A'
+                    $Resource.Name -eq 'StubResource2A'
                 }
             }
             It 'correctly adds result of ConvertTo-BoundResource to Resources' {
@@ -184,7 +184,7 @@ Describe ConvertTo-ConfigInfo {
         It 'the exception shows the filename of the offending call' {}
         It 'the exception shows the line number of the offending call' {}
         It 'the exception contains an informative message' {
-            $h.Exception.ToString() | Should match 'Duplicate resource type StubResource2A'
+            $h.Exception.ToString() | Should match 'Duplicate resource named StubResource2A'
         }
     }
     InModuleScope ZeroDsc {

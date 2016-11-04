@@ -95,7 +95,7 @@ function Get-MofResourceCommands
             return $moduleInfo.ExportedCommands
         }
 
-        throw "Could not find commands for DSC resource $($DscResource.ResourceType)."
+        throw "Could not find commands for DSC resource $($DscResource.Name)."
     }    
 }
 

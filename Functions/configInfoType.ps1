@@ -53,15 +53,15 @@ function ConvertTo-ConfigInfo
         $resources = New-Object 'System.Collections.Generic.Dictionary`2[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]'
         foreach ( $resource in $InputObject.DscResources )
         {
-            # check for duplicate ResourceTypes
-            if ( $resources.ContainsKey( $resource.ResourceType ) )
+            # check for duplicate resource names
+            if ( $resources.ContainsKey( $resource.Name ) )
             {
                 throw New-Object System.FormatException(
-                    "Duplicate resource type $($resource.ResourceType)"
+                    "Duplicate resource named $($resource.Name)"
                 )  
             }
 
-            $resources.($resource.ResourceType) = $resource
+            $resources.($resource.Name) = $resource
         }
 
         # convert the raw configurations, then bind each one to its corresponding resource

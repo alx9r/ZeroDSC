@@ -10,7 +10,7 @@ function Import-DscResource
     )
     process
     {
-        New-Alias $DscResource.ResourceType New-RawResourceConfigInfo -Scope 1 -Force
+        New-Alias $DscResource.Name New-RawResourceConfigInfo -Scope 1 -Force
 
         return $DscResource
     }

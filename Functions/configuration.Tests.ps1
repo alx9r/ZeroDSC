@@ -11,8 +11,8 @@ Describe 'Test Environment' {
 Describe 'Configuration sample' {
     It 'returns a ConfigInfo object' {
         $records.Sample1Result = zConfiguration ConfigName {
-            Get-DscResource StubResource1A | Import-DscResource
-            StubResource1A ResourceName @{
+            Get-DscResource StubResource2A | Import-DscResource
+            StubResource2A ResourceName @{
                 StringParam1 = 's1'
                 BoolParam = $true
             }
@@ -29,8 +29,8 @@ Describe 'Configuration sample' {
             Should be 'ConfigName'
     }
     It 'has the correct DSC Resource' {
-        $records.Sample1Result.DscResources[0].ResourceType |
-            Should be StubResource1A
+        $records.Sample1Result.DscResources[0].Name |
+            Should be 'StubResource2A'
     }
     It 'has the correct resource in ResourceConfigs' {
         $r = $records.Sample1Result.ResourceConfigs[0]
