@@ -42,6 +42,33 @@ class ClassResourceInvoker : ResourceInvoker
     }
 }
 
+
+function Test-ClassResourceType
+{
+    [CmdletBInding()]
+    param
+    (
+        [Parameter(ValueFromPipeline = $true)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+        $DscResource
+    )
+    process
+    {
+        try
+        {
+            $DscResource | 
+                New-ClassResourceObject |
+                Out-Null
+            return $true
+        }
+        catch
+        {
+            return $false
+        }
+    }
+}
+
+
 function New-ClassResourceObject
 {
     [CmdletBInding()]
