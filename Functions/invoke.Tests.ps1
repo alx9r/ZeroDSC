@@ -36,7 +36,7 @@ Describe Invoke-ProcessConfiguration {
 Describe 'Invoke-ResourceConfiguration' {
     Context 'stub' {
         It 'correctly returns value (1)' {
-            $configInfo = zConfiguration ConfigName {
+            $ConfigDocument = New-ConfigDocument ConfigName {
                 Get-DscResource StubResource1A | Import-DscResource
                 StubResource1A ResourceName @{
                     StringParam1 = 's1'
@@ -44,15 +44,15 @@ Describe 'Invoke-ResourceConfiguration' {
                 }
             }
             $splat = @{
-                DscResources = $configInfo.DscResources
-                ResourceConfig = $configInfo.ResourceConfigs.'[StubResource1A]ResourceName'
+                DscResources = $ConfigDocument.DscResources
+                ResourceConfig = $ConfigDocument.ResourceConfigs.'[StubResource1A]ResourceName'
                 Mode = 'Test'
             }
             $r = Invoke-ResourceConfiguration @splat
             $r | Should be $true
         }
         It 'correctly returns value (2)' {
-            $configInfo = zConfiguration ConfigName {
+            $ConfigDocument = New-ConfigDocument ConfigName {
                 Get-DscResource StubResource1A | Import-DscResource
                 StubResource1A ResourceName @{
                     StringParam1 = 's1'
@@ -60,8 +60,8 @@ Describe 'Invoke-ResourceConfiguration' {
                 }
             }
             $splat = @{
-                DscResources = $configInfo.DscResources
-                ResourceConfig = $configInfo.ResourceConfigs.'[StubResource1A]ResourceName'
+                DscResources = $ConfigDocument.DscResources
+                ResourceConfig = $ConfigDocument.ResourceConfigs.'[StubResource1A]ResourceName'
                 Mode = 'Test'
             }
             $r = Invoke-ResourceConfiguration @splat

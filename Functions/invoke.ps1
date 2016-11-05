@@ -4,8 +4,8 @@ function Invoke-ProcessConfiguration
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [ConfigInfo]
-        $ConfigInfo,
+        [ConfigDocument]
+        $ConfigDocument,
 
         [ValidateSet('TestOnly')]
         [string]

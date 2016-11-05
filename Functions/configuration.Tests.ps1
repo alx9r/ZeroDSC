@@ -9,8 +9,8 @@ Describe 'Test Environment' {
 }
 
 Describe 'Configuration sample' {
-    It 'returns a ConfigInfo object' {
-        $records.Sample1Result = zConfiguration ConfigName {
+    It 'returns a ConfigDocument object' {
+        $records.Sample1Result = New-ConfigDocument ConfigName {
             Get-DscResource StubResource2A | Import-DscResource
             StubResource2A ResourceName @{
                 StringParam1 = 's1'

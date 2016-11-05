@@ -23,81 +23,81 @@ Describe 'Test Environment' {
     }
 }
 
-Describe RawConfigInfo {
+Describe RawConfigDocument {
     It 'creates new object' {
-        $records.RawConfigInfo = & (Get-Module ZeroDsc).NewBoundScriptBlock({
-            [RawConfigInfo]::new('name')
+        $records.RawConfigDocument = & (Get-Module ZeroDsc).NewBoundScriptBlock({
+            [RawConfigDocument]::new('name')
         })
     }
     It '.DscResources is initialized' {
-        $null -ne $records.RawConfigInfo.DscResources |
+        $null -ne $records.RawConfigDocument.DscResources |
             Should be $true
     }
     It '.ResourceConfigs is initialized' {
-        $null -ne $records.RawConfigInfo.ResourceConfigs |
+        $null -ne $records.RawConfigDocument.ResourceConfigs |
             Should be $true
     }
     Context '.Add()' {
         It '.DscResources starts out empty' {
-            $records.RawConfigInfo.DscResources.Count |
+            $records.RawConfigDocument.DscResources.Count |
                 Should be 0
         }
         It 'add a DSC resource' {
-            $records.RawConfigInfo.Add($records.DscResource)
+            $records.RawConfigDocument.Add($records.DscResource)
         }
         It '.DscResources has one item' {
-            $records.RawConfigInfo.DscResources.Count |
+            $records.RawConfigDocument.DscResources.Count |
                 Should be 1
         }
         It 'retrieve that item by index' {
-            $records.RawConfigInfo.DscResources[0] |
+            $records.RawConfigDocument.DscResources[0] |
                 Should be $records.DscResource
         }
         It '.ResourceConfigs starts out empty' {
-            $records.RawConfigInfo.ResourceConfigs.Count |
+            $records.RawConfigDocument.ResourceConfigs.Count |
                 Should be 0
         }
         It 'add a ResourceConfigInfo object' {
-            $records.RawConfigInfo.Add( $records.ResourceConfigInfo )
+            $records.RawConfigDocument.Add( $records.ResourceConfigInfo )
         }
         It '.ResourceConfigs has one item' {
-            $records.RawConfigInfo.ResourceConfigs.Count |
+            $records.RawConfigDocument.ResourceConfigs.Count |
                 Should be 1
         }
         It 'retrieve that item by index' {
-            $records.RawConfigInfo.ResourceConfigs[0] |
+            $records.RawConfigDocument.ResourceConfigs[0] |
                 Should be $records.ResourceConfigInfo
         }
         It 'add an AggregateConfigInfo object' {
-            $records.RawConfigInfo.Add( $records.AggregateConfigInfo )
+            $records.RawConfigDocument.Add( $records.AggregateConfigInfo )
         }
         It '.ResourceConfigs has two items' {
-            $records.RawConfigInfo.ResourceConfigs.Count |
+            $records.RawConfigDocument.ResourceConfigs.Count |
                 Should be 2            
         }
         It 'retrieve that item by index' {
-            $records.RawConfigInfo.ResourceConfigs[1] |
+            $records.RawConfigDocument.ResourceConfigs[1] |
                 Should be $records.AggregateConfigInfo
         }
     }
 }
 
-Describe ConvertTo-ConfigInfo {
+Describe ConvertTo-ConfigDocument {
     It 'creates exactly one new object' {
-        $r = zConfiguration 'DocumentName' {} | ConvertTo-ConfigInfo
+        $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
         $r.Count | Should be 1
     }
-    It 'the object type is ConfigInfo' {
-        $r = zConfiguration 'DocumentName' {} | ConvertTo-ConfigInfo
-        $r.GetType() | Should be 'ConfigInfo'
+    It 'the object type is ConfigDocument' {
+        $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
+        $r.GetType() | Should be 'ConfigDocument'
     }
     It 'correctly populates Name' {
-        $r = zConfiguration 'DocumentName' {} | ConvertTo-ConfigInfo
+        $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
         $r.Name | Should be 'DocumentName'
     }
     InModuleScope ZeroDsc {
         Context 'convert config info and bind to resources' {
-            $raw = zConfiguration 'DocumentName' {
+            $raw = New-ConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 Get-DscResource StubResource2B | Import-DscResource
                 StubResource2A ConfigName2A @{}
@@ -114,7 +114,7 @@ Describe ConvertTo-ConfigInfo {
                 $o
             }
             It 'correctly invokes ConvertTo-ResourceConfigInfo' {
-                $raw | ConvertTo-ConfigInfo
+                $raw | ConvertTo-ConfigDocument
                 Assert-MockCalled ConvertTo-ResourceConfigInfo -Times 1 {
                     $InputObject.ConfigName -eq 'ConfigName2A'
                 }
@@ -126,7 +126,7 @@ Describe ConvertTo-ConfigInfo {
                 }
             }
             It 'correctly adds result of ConvertTo-BoundResource to Resources' {
-                $o = $raw | ConvertTo-ConfigInfo
+                $o = $raw | ConvertTo-ConfigDocument
                 $r = $o.Resources.'[StubResource2A]ConfigName2A'
                 $r.Config.ConfigName | Should be 'ConfigName2A'
                 $r.Config.ResourceName | Should be 'StubResource2A'
@@ -137,14 +137,14 @@ Describe ConvertTo-ConfigInfo {
         $h = @{}
         It 'throws correct exception type' {
             $h.CallSite = & {$MyInvocation}            
-            $raw = zConfiguration 'DocumentName' {
+            $raw = New-ConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 StubResource2A ConfigName2A @{}
                 StubResource2A ConfigName2A @{}
             }
             try
             {
-                $raw | ConvertTo-ConfigInfo 
+                $raw | ConvertTo-ConfigDocument 
             }
             catch [FormatException]
             {
@@ -166,14 +166,14 @@ Describe ConvertTo-ConfigInfo {
         $h = @{}
         It 'throws correct exception type' {
             $h.CallSite = & {$MyInvocation}            
-            $raw = zConfiguration 'DocumentName' {
+            $raw = New-ConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 Get-DscResource StubResource2A | Import-DscResource
                 StubResource2A ConfigName2A @{}
             }
             try
             {
-                $raw | ConvertTo-ConfigInfo 
+                $raw | ConvertTo-ConfigDocument 
             }
             catch [FormatException]
             {
@@ -193,13 +193,13 @@ Describe ConvertTo-ConfigInfo {
             Mock ConvertTo-BoundResource { throw 'mock resource binding exception message' }
             It 'throws correct exception type' {
                 $h.CallSite = & {$MyInvocation}            
-                $raw = zConfiguration 'DocumentName' {
+                $raw = New-ConfigDocument 'DocumentName' {
                     Set-Alias ResourceName New-RawResourceConfigInfo
                     ResourceName ResourceConfigName @{}
                 }
                 try
                 {
-                    $raw | ConvertTo-ConfigInfo 
+                    $raw | ConvertTo-ConfigDocument 
                 }
                 catch [FormatException]
                 {

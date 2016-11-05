@@ -1,4 +1,4 @@
-class RawConfigInfo
+class RawConfigDocument
 {
     [string]
     $Name
@@ -9,7 +9,7 @@ class RawConfigInfo
     [System.Collections.Generic.List[RawResourceConfigInfo]]
     $ResourceConfigs = (New-Object System.Collections.Generic.List[RawResourceConfigInfo])
 
-    RawConfigInfo([string] $name) 
+    RawConfigDocument([string] $name) 
     {
         $this.Name = $name
     }
@@ -25,7 +25,7 @@ class RawConfigInfo
     }
 }
 
-class ConfigInfo
+class ConfigDocument
 {
     [string]
     $Name
@@ -34,19 +34,19 @@ class ConfigInfo
 }
 
 
-function ConvertTo-ConfigInfo
+function ConvertTo-ConfigDocument
 {
     [CmdletBinding()]
-    [OutputType([ConfigInfo])]
+    [OutputType([ConfigDocument])]
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [RawConfigInfo]
+        [RawConfigDocument]
         $InputObject
     )
     process
     {
-        $outputObject = [ConfigInfo]::new()
+        $outputObject = [ConfigDocument]::new()
         $outputObject.Name = $InputObject.Name
 
         # put the resources into a temporary dictionary
@@ -71,7 +71,7 @@ function ConvertTo-ConfigInfo
             $config = $rawConfig | ConvertTo-ResourceConfigInfo
             
             # compose the ConfigPath
-            $configPath = $config | ConvertTo-ConfigPath
+            $configPath = $config.GetConfigPath()
 
             # check for duplicate config path
             if ( $outputObject.Resources.ContainsKey($configPath) )

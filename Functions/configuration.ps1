@@ -1,4 +1,4 @@
-function zConfiguration 
+function New-ConfigDocument 
 {
     [CmdletBinding()]
     param
@@ -13,11 +13,11 @@ function zConfiguration
     process 
     {
         $items = & (Get-Module ZeroDsc).NewBoundScriptBlock($ScriptBlock)
-        $configInfo = [RawConfigInfo]::new($Name)
+        $ConfigDocument = [RawConfigDocument]::new($Name)
         foreach ( $item in $items )
         {
-            $configInfo.Add($item)
+            $ConfigDocument.Add($item)
         }
-        return $configInfo
+        return $ConfigDocument
     }
 }
