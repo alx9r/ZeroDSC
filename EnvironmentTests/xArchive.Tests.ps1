@@ -43,14 +43,14 @@ Describe xArchive {
             $records.Invoker = Get-DscResource xArchive | New-ResourceInvoker
         }
         It 'Test-TargetResource is true' {
-            $r = $records.Invoker.Test($p)
+            $r = $records.Invoker.Invoke('Test',$p)
             $r | Should be $true
         }
         It 'Set-TargetResource works' {
-            $records.Invoker.Set($p)
+            $records.Invoker.Invoke('Set',$p)
         }
         It 'Test-TargetResource is still true' {
-            $r = $records.Invoker.Test($p)
+            $r = $records.Invoker.Invoke('Test',$p)
             $r | Should be $true
         }
         It 'change the source file' {
@@ -62,14 +62,14 @@ Describe xArchive {
             Compress-Archive @splat -Force -ea Stop
         }
         It 'Test-TargetResource is false' {
-            $r = $records.Invoker.Test($p)
+            $r = $records.Invoker.Invoke('Test',$p)
             $r | Should be $false
         }
         It 'Set-TargetResource works' {
-            $records.Invoker.Set($p)
+            $records.Invoker.Invoke('Set',$p)
         }
         It 'Test-TargetResource is true again' {
-            $r = $records.Invoker.Test($p)
+            $r = $records.Invoker.Invoke('Test',$p)
             $r | Should be $true
         }
     }

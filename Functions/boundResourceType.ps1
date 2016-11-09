@@ -8,6 +8,11 @@ class BoundResource : BoundResourceBase {
 
     [ResourceInvoker]
     $Invoker
+
+    [object] Invoke ( [string] $Mode )
+    {
+        return $this.Invoker.Invoke( $Mode, $this.Config.Params.Params )
+    }
 }
 class BoundAggregate : BoundResourceBase {}
 

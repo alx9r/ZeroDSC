@@ -11,30 +11,10 @@ class ClassResourceInvoker : ResourceInvoker
             New-ClassResourceObject
     }
 
-    [object] Get( [hashtable] $Params )
+    [object] Invoke ( [string] $Mode, [hashtable] $Params )
     {
         $splat = @{
-            Mode = 'Get'
-            Params = $Params
-            ResourceObject = $this.ResourceObject
-        }
-        return Invoke-ClassResourceCommand @splat
-    }
-
-    Set( [hashtable] $Params )
-    {
-        $splat = @{
-            Mode = 'Set'
-            Params = $Params
-            ResourceObject = $this.ResourceObject
-        }
-        Invoke-ClassResourceCommand @splat
-    }
-
-    [bool] Test( [hashtable] $Params )
-    {
-        $splat = @{
-            Mode = 'Test'
+            Mode = $Mode
             Params = $Params
             ResourceObject = $this.ResourceObject
         }
@@ -160,6 +140,12 @@ function Invoke-ClassResourceCommand
             $ResourceObject.$key = $Params.$key
         }
 
-        $ResourceObject.$Mode()
+        $result = $ResourceObject.$Mode()
+
+        if ( $null -eq $result )
+        {
+            return $null
+        }
+        return $result
     }
 }

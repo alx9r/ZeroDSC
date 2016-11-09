@@ -8,11 +8,18 @@ Describe 'Test Environment' {
     }
     It 'retrieve a DscResource' {
         $records.DscResource = Get-DscResource StubResource1A
+        $records.MofDscResource = $records.DscResource
+    }
+    It 'retrieve another DscResource' {
+        $records.ClassDscResource = Get-DscResource StubResource2A
     }
     It 'create a ResourceConfigInfo' {
         $records.ResourceConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
             Set-Alias ResourceName New-RawResourceConfigInfo
-            ResourceName ResourceConfigName @{}
+            ResourceName ResourceConfigName @{
+                StringParam1 = 's1'
+                BoolParam = $true
+            }
         }) |
             ConvertTo-ResourceConfigInfo
     }
@@ -93,5 +100,28 @@ Describe 'ConvertTo-BoundResource' {
         }
         { ConvertTo-BoundResource @splat } |
             Should throw 'Resource argument was provided'
+    }
+}
+Describe '.Invoke() stub' {
+    foreach ( $typeName in 'Mof','Class' )
+    {
+        $splat = @{
+            Resource = $records."$typeName`DscResource"
+            Config = $records.ResourceConfigInfo
+        }
+        $res = ConvertTo-BoundResource @splat
+        Context "correctly invokes the stub ($typeName Resource)" {
+            It 'get' {
+                $r = $res.Invoke('Get')
+                $r.StringParam1 | Should be 's1'
+            }
+            It 'set' {
+                $res.Invoke('Set')
+            }
+            It 'test' {
+                $r = $res.Invoke('Test')
+                $r | Should be $true
+            }
+        }
     }
 }

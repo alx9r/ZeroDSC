@@ -11,30 +11,10 @@ class MofResourceInvoker : ResourceInvoker
         $this.CommandInfo = $ResourceInfo | Get-MofResourceCommands
     }
 
-    [object] Get( [hashtable] $Params ) 
+    [object] Invoke ( [string] $Mode, [hashtable] $Params ) 
     { 
         $splat = @{
-            Mode = 'Get'
-            Params = $Params
-            CommandInfo = $this.CommandInfo
-        }
-        return Invoke-MofResourceCommand @splat
-    }
-
-    Set( [hashtable] $Params ) 
-    {
-        $splat = @{
-            Mode = 'Set'
-            Params = $Params
-            CommandInfo = $this.CommandInfo
-        }
-        Invoke-MofResourceCommand @splat
-    }
-
-    [bool] Test( [hashtable] $Params )
-    { 
-        $splat = @{
-            Mode = 'Test'
+            Mode = $Mode
             Params = $Params
             CommandInfo = $this.CommandInfo
         }
@@ -121,7 +101,13 @@ function Invoke-MofResourceCommand
         
         $prunedParams = Invoke-PruneParams -Params $Params -CommandInfo $CommandInfo.$commandName
 
-        return & "$moduleName\$commandName" @prunedParams
+        $result = & "$moduleName\$commandName" @prunedParams
+
+        if ( $null -eq $result )
+        {
+            return $null
+        }
+        return $result
     }
 }
 

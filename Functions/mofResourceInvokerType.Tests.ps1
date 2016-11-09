@@ -115,7 +115,7 @@ Describe Invoke-MofResourceCommand {
         }
         It 'returns value' {
             $r = Invoke-MofResourceCommand get -Params $p -CommandInfo $c
-            $r | Should be 's1'
+            $r.StringParam1 | Should be 's1'
         }
     }
 }
