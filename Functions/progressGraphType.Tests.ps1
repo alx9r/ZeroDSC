@@ -61,8 +61,16 @@ Describe 'Get-NextConfigStep (1)' {
             $h.Step1.Message | Should match 'Test'
             $h.Step1.Phase | Should be 'Pretest'
         }
-        It 'invoke Step 1' {
+        It 'confirm state' {
+            $h.ProgressGraph.Resources.'[StubResource5]a'.Progress |
+                Should be 'Pending'
+        }
+        It 'invoke' {
             $h.Step1.Invoke()
+        }
+        It 'check results' {
+            $h.ProgressGraph.Resources.'[StubResource5]a'.Progress |
+                Should be 'Pending'
         }
         It 'get Step 2' {
             $h.Step2 = $h.ProgressGraph | Get-NextConfigStep
@@ -70,8 +78,16 @@ Describe 'Get-NextConfigStep (1)' {
             $h.Step2.Message | Should match 'Test'
             $h.Step2.Phase | Should be 'Pretest'
         }
-        It 'invoke Step 2' {
+        It 'confirm state' {
+            $h.ProgressGraph.Resources.'[StubResource5]b'.Progress |
+                Should be 'Pending'
+        }
+        It 'invoke' {
             $h.Step1.Invoke()
+        }
+        It 'check results' {
+            $h.ProgressGraph.Resources.'[StubResource5]b'.Progress |
+                Should be 'Pending'
         }
     }
     Context 'Configure' {
@@ -81,8 +97,16 @@ Describe 'Get-NextConfigStep (1)' {
             $h.Step3.Message | Should match 'Set'
             $h.Step3.Phase | Should match 'Configure'
         }
-        It 'invoke Step 3' {
+        It 'confirm state' {
+            $h.ProgressGraph.Resources.'[StubResource5]a'.Progress |
+                Should be 'Pending'
+        }
+        It 'invoke' {
             $h.Step3.Invoke()
+        }
+        It 'check results' {
+            $h.ProgressGraph.Resources.'[StubResource5]a'.Progress |
+                Should be 'SetButNotTested'
         }
         It 'get Step 4' {
             $h.Step4 = $h.ProgressGraph | Get-NextConfigStep
@@ -90,8 +114,16 @@ Describe 'Get-NextConfigStep (1)' {
             $h.Step4.Message | Should match 'Test'
             $h.Step4.Phase | Should match 'Configure'
         }
-        It 'invoke Step 4' {
+        It 'confirm state' {
+            $h.ProgressGraph.Resources.'[StubResource5]a'.Progress |
+                Should be 'SetButNotTested'
+        }
+        It 'invoke' {
             $h.Step4.Invoke()
+        }
+        It 'check results' {
+            $h.ProgressGraph.Resources.'[StubResource5]a'.Progress |
+                Should be 'Complete'
         }
         It 'get Step 5' {
             $h.Step5 = $h.ProgressGraph | Get-NextConfigStep
@@ -99,8 +131,16 @@ Describe 'Get-NextConfigStep (1)' {
             $h.Step5.Message | Should match 'Set'
             $h.Step5.Phase | Should match 'Configure'
         }
-        It 'invoke Step 5' {
+        It 'confirm state' {
+            $h.ProgressGraph.Resources.'[StubResource5]b'.Progress |
+                Should be 'Pending'
+        }
+        It 'invoke' {
             $h.Step5.Invoke()
+        }
+        It 'check results' {
+            $h.ProgressGraph.Resources.'[StubResource5]b'.Progress |
+                Should be 'SetButNotTested'
         }
         It 'get Step 6' {
             $h.Step6 = $h.ProgressGraph | Get-NextConfigStep
@@ -108,8 +148,20 @@ Describe 'Get-NextConfigStep (1)' {
             $h.Step6.Message | Should match 'Test'
             $h.Step6.Phase | Should match 'Configure'
         }
-        It 'invoke Step 6' {
+        It 'confirm state' {
+            $h.ProgressGraph.Resources.'[StubResource5]b'.Progress |
+                Should be 'SetButNotTested'
+        }
+        It 'invoke' {
             $h.Step6.Invoke()
         }
+        It 'check results' {
+            $h.ProgressGraph.Resources.'[StubResource5]b'.Progress |
+                Should be 'Complete'
+        }
+    }
+    It 'return $null after last step' {
+        $h.Step7 = $h.ProgressGraph | Get-NextConfigStep
+        $null -eq $h.Step7 | Should be $true
     }
 }
