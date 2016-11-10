@@ -218,4 +218,10 @@ Describe ConvertTo-ConfigDocument {
             }
         }
     }
+    Context 'DependsOn points to non-existent resource' {
+        It 'throws correct exception type' {}
+        It 'the exception shows the filename of the offending call' {}
+        It 'the exception shows the line number of the offending call' {}
+        It 'the exception contains an informative message' {}
+    }
 }
