@@ -6,7 +6,7 @@ enum TestNodeEvent
     AtNodeComplete
 }
 
-function New-ConfigureStateMachine
+function New-ConfigStateMachine
 {
     [CmdletBinding()]
     [OutputType([StateMachine])]
