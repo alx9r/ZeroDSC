@@ -3,7 +3,7 @@ Import-Module ZeroDsc -Force
 Describe New-Transition {
     $params =  @{
         TransitionName = 'name'
-        Trigger = 'trigger'
+        Triggers = 'trigger'
         SourceStateName = 'source'
         TargetStateName = 'target'
         TransitionActions = @(
@@ -19,7 +19,7 @@ Describe New-Transition {
     It 'correctly populates properties' {
         $r = $params | New-Transition
         $r.TransitionName | Should be 'name'
-        $r.Trigger | Should be 'trigger'
+        $r.Triggers | Should be 'trigger'
         $r.SourceStateName | Should be 'source'
         $r.TargetStateName | Should be 'target'
         $r.TransitionActions[0] | Should match 'Action1'
@@ -33,7 +33,7 @@ Describe New-Transition {
     }
     Context 'missing mandatory parameters' {
             foreach ( $parameterName in @(
-                'TransitionName','Trigger',
+                'TransitionName','Triggers',
                 'SourceStateName','TargetStateName'
             )
         )
@@ -98,7 +98,7 @@ Describe New-StateMachine {
             $transitions =  @(
                 @{
                     TransitionName = 'AtoB'
-                    Trigger = 'trigger'
+                    Triggers = 'trigger1','trigger2'
                     SourceStateName = 'a'
                     TargetStateName = 'b'
                 }
@@ -121,8 +121,9 @@ Describe New-StateMachine {
         }
         It 'correctly populates transition lists' {
             $r = New-StateMachine $states $transitions
-            $r.StateList.a.TransitionList.Count | Should be 1
-            $r.StateList.a.TransitionList.trigger.TransitionName | Should be 'AtoB'
+            $r.StateList.a.TransitionList.Count | Should be 2
+            $r.StateList.a.TransitionList.trigger1.TransitionName | Should be 'AtoB'
+            $r.StateList.a.TransitionList.trigger2.TransitionName | Should be 'AtoB'
             $r.StateList.b.TransitionList.Count | Should be 0
         }
     }
@@ -161,13 +162,13 @@ Describe New-StateMachine {
         $transitions =  @(
             @{
                 TransitionName = 'AtoA1'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'a'
             }
             @{
                 TransitionName = 'AtoA2'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'a'
             }
@@ -183,7 +184,7 @@ Describe New-StateMachine {
         $transitions = @(
             @{
                 TransitionName = 'BtoA'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'b'
                 TargetStateName = 'a'
             }            
@@ -198,7 +199,7 @@ Describe New-StateMachine {
         $transitions = @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }            
@@ -219,7 +220,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -250,7 +251,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -284,7 +285,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -317,7 +318,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -344,7 +345,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
                 TransitionActions = @(
@@ -382,7 +383,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
                 TransitionActions = @(
@@ -419,7 +420,7 @@ Describe Invoke-RunNext {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -449,7 +450,7 @@ Describe Add-Event {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -474,7 +475,7 @@ Describe Add-Event {
         $transitions =  @(
             @{
                 TransitionName = 'AtoB'
-                Trigger = 'trigger'
+                Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
             }
@@ -506,20 +507,20 @@ Describe 'complete StateMachine' {
     $transitions = @(
         @{
             TransitionName = [Transition]::AtoB
-            Trigger = [Event]::Next
+            Triggers = [Event]::Next
             SourceStateName = [State]::a
             TargetStateName = [State]::b
         }
         @{
             TransitionName = [Transition]::BtoC
-            Trigger = [Event]::BDone
+            Triggers = [Event]::BDone
             SourceStateName = [State]::b
             TargetStateName = [State]::c
             TransitionActions = { $StateMachine.AddEvent([Event]::StartA) }
         }
         @{
             TransitionName = [Transition]::CtoA
-            Trigger = [Event]::StartA
+            Triggers = [Event]::StartA
             SourceStateName = [State]::c
             TargetStateName = [State]::a
         }

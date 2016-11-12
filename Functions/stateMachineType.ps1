@@ -1,7 +1,7 @@
 class SmTransition
 {
     [string] $TransitionName
-    [string] $Trigger
+    [string[]] $Triggers
     [string] $SourceStateName
     [string] $TargetStateName
     [scriptblock[]] $TransitionActions
@@ -187,7 +187,7 @@ function New-Transition
     {
         $outputObject = New-Object SmTransition -Property $InputObject
 
-        'TransitionName','Trigger','SourceStateName','TargetStateName' |
+        'TransitionName','Triggers','SourceStateName','TargetStateName' |
             ? { -not $InputObject.ContainsKey($_) } |
             % {
                 throw [System.ArgumentException]::new(
@@ -279,16 +279,19 @@ function New-StateMachine
             }
 
             # duplicate transition
-            if ( $outputObject.StateList.$($transition.SourceStateName).TransitionList.ContainsKey($transition.Trigger) )
+            if ( $outputObject.StateList.$($transition.SourceStateName).TransitionList.ContainsKey($transition.Triggers) )
             {
                 throw [System.ArgumentException]::new(
-                    "Duplicate transition state '$($transition.SourceStateName)' trigger '$($transition.Trigger)'",
+                    "Duplicate transition state '$($transition.SourceStateName)' trigger '$($transition.Triggers)'",
                     'Transitions'
                 )
             }
 
             # populate transition lists
-            $outputObject.StateList.$($transition.SourceStateName).TransitionList.$($transition.Trigger) = $transition
+            foreach ( $trigger in $transition.Triggers )
+            {
+                $outputObject.StateList.$($transition.SourceStateName).TransitionList.$trigger = $transition
+            }
         }
 
         return $outputObject
