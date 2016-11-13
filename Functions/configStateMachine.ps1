@@ -1,11 +1,3 @@
-enum TestNodeEvent
-{
-    AtEndOfNodes
-    AtNodeReady
-    AtNodeNotReady
-    AtNodeComplete
-}
-
 function New-ConfigStateMachine
 {
     [CmdletBinding()]
@@ -71,11 +63,12 @@ function New-ConfigStateMachine
             PretestDispatch
             PretestWaitForExternalTest
 
-            # Configure Phase
+            # Configure Phase (No Progress)
             ConfigureDispatch
             ConfigureWaitForTestExternal
             ConfigureWaitForSetExternal
 
+            # Configure Phase (Progress)
             ConfigureProgressDispatch
             ConfigureProgressWaitForTestExternal
             ConfigureProgressWaitForSetExternal
@@ -91,7 +84,7 @@ function New-ConfigStateMachine
             StartResourcePretest
             EndResourcePretest
 
-            # ConfigurePhase
+            # Configure Phase (No Progress)
             StartConfigure
             StartConfigureResourceSet
             StartConfigureResourceTest
@@ -99,6 +92,7 @@ function New-ConfigStateMachine
             EndConfigureResourceFailed
             MoveConfigureNextResource
 
+            # Configure Phase (Progress)
             StartConfigureProgressResourceSet
             StartConfigureProgressResourceTest
             MoveConfigureProgressNextResource
@@ -109,7 +103,7 @@ function New-ConfigStateMachine
 
         enum Event
         {
-            MoveNextNode
+            Start
             AtEndOfCollection
             AtNodeReady
             AtNodeNotReady
@@ -120,36 +114,48 @@ function New-ConfigStateMachine
         }
 
         $states = @(
+
             @{
                 StateName = [State]::IdleExternal
                 IsDefaultState = $true
             }
+
+            # Pretest Phase
             @{ 
                 StateName = [State]::PretestDispatch
                 EntryActions = $TestNode
             }
             @{ StateName = [State]::PretestWaitForExternalTest }
+
+            # Configure Phase (No Progress)
             @{ 
                 StateName = [State]::ConfigureDispatch
                 EntryActions = $TestNode
             }
             @{ StateName = [State]::ConfigureWaitForTestExternal }
             @{ StateName = [State]::ConfigureWaitForSetExternal }
+
+            # Configure Phase (Progress)
             @{ 
                 StateName = [State]::ConfigureProgressDispatch
                 EntryActions = $TestNode
             }
             @{ StateName = [State]::ConfigureProgressWaitForTestExternal }
             @{ StateName = [State]::ConfigureProgressWaitForSetExternal }
+
+
             @{ StateName = [State]::Ended }
         ) | New-State
 
         $transitions = @(
+
+            # Pretest Phase
             @{ 
                 TransitionName = [Transition]::StartPretest
                 Triggers = [Event]::Start
                 SourceStateName = [State]::IdleExternal
                 TargetStateName = [State]::PretestDispatch
+                TransitionActions = $MoveNext
             }
             @{ 
                 TransitionName = [Transition]::StartResourcePretest
@@ -164,18 +170,20 @@ function New-ConfigStateMachine
                 TargetStateName = [State]::PretestDispatch
                 TransitionActions = $MoveNext
             }
+
+            # Configure Phase (No Progress)
             @{ 
                 TransitionName = [Transition]::StartConfigure
                 Triggers = [Event]::AtEndOfCollection
                 SourceStateName = [State]::PretestDispatch
                 TargetStateName = [State]::ConfigureDispatch
-                TransitionActions = $Reset
+                TransitionActions = $Reset,$MoveNext
             }
             @{ 
                 TransitionName = [Transition]::StartConfigureResourceSet
                 Triggers = [Event]::AtNodeReady
                 SourceStateName = [State]::ConfigureDispatch
-                TargetStateName = [State]::ConfigureProgressWaitForSetExternal
+                TargetStateName = [State]::ConfigureWaitForSetExternal
             }
             @{ 
                 TransitionName = [Transition]::StartConfigureResourceTest
@@ -202,6 +210,8 @@ function New-ConfigStateMachine
                 TargetStateName = [State]::ConfigureDispatch
                 TransitionActions = $MoveNext
             }
+
+            # Configure Phase (Progress)
             @{ 
                 TransitionName = [Transition]::StartConfigureProgressResourceSet
                 Triggers = [Event]::AtNodeReady
@@ -218,15 +228,18 @@ function New-ConfigStateMachine
                 TransitionName = [Transition]::MoveConfigureProgressNextResource
                 Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady
                 SourceStateName = [State]::ConfigureProgressDispatch
-                TargetStateName = [State]::ConfigureDispatch
+                TargetStateName = [State]::ConfigureProgressDispatch
+                TransitionActions = $MoveNext
             }
             @{ 
                 TransitionName = [Transition]::StartNewConfigurePass
                 Triggers = [Event]::AtEndOfCollection
                 SourceStateName = [State]::ConfigureProgressDispatch
                 TargetStateName = [State]::ConfigureDispatch
-                TransitionActions = $Reset
+                TransitionActions = $Reset,$MoveNext
             }
+
+
             @{ 
                 TransitionName = [Transition]::End
                 Triggers = [Event]::AtEndOfCollection
