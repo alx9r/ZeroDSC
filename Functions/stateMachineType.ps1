@@ -30,7 +30,7 @@ class StateMachine
     [SmState] $CurrentState
     [SmState] $PreviousState
 
-    AddEvent ( [string] $EventName )
+    RaiseEvent ( [string] $EventName )
     {
         $this | Add-Event $EventName
     }
@@ -94,12 +94,14 @@ function Invoke-RunNext
         try
         {
             # prepare the actions' invocation context variable
-            $variables = [psvariable]::new('StateMachine',$StateMachine)
+            $functions = @{
+                RaiseEvent = { param($EventName) $StateMachine.RaiseEvent($EventName) }
+            }
 
             # invoke the exit actions
             foreach ( $action in $StateMachine.CurrentState.ExitActions )
             {
-                $action.InvokeWithContext(@{},$variables) | Out-Null
+                $action.InvokeWithContext($functions,$null) | Out-Null
             }
 
             # extract the transition
@@ -108,7 +110,7 @@ function Invoke-RunNext
             # invoke the transition actions
             foreach ( $action in $transition.TransitionActions )
             {
-                $action.InvokeWithContext(@{},$variables) | Out-Null
+                $action.InvokeWithContext($functions,$null) | Out-Null
             }
 
             # extract the next state
@@ -117,7 +119,7 @@ function Invoke-RunNext
             # invoke the entry actions
             foreach ( $action in $nextState.EntryActions )
             {
-                $action.InvokeWithContext(@{},$variables) | Out-Null
+                $action.InvokeWithContext($functions,$null) | Out-Null
             }
         }
         catch

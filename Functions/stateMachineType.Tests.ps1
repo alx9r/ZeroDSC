@@ -462,12 +462,12 @@ Describe Add-Event {
             $r | Should be 'event'
         }
     }
-    Context 'internal invokation' {
+    Context 'invokation from internal action' {
         $states = @(
             @{ 
                 StateName = 'a' ; IsDefaultState = $true 
                 ExitActions = {
-                    $StateMachine | Add-Event 'event raised in action'
+                    RaiseEvent 'event raised in action'
                 }
             }
             @{ StateName = 'b' }
@@ -499,7 +499,7 @@ Describe 'complete StateMachine' {
         @{ StateName = [State]::a ; IsDefaultState = $true }
         @{ 
             StateName = [State]::b
-            EntryActions = { $StateMachine.AddEvent([Event]::BDone) }
+            EntryActions = { RaiseEvent([Event]::BDone) }
         }
         @{ StateName = [State]::c }
     ) | New-State
@@ -516,7 +516,7 @@ Describe 'complete StateMachine' {
             Triggers = [Event]::BDone
             SourceStateName = [State]::b
             TargetStateName = [State]::c
-            TransitionActions = { $StateMachine.AddEvent([Event]::StartA) }
+            TransitionActions = { RaiseEvent([Event]::StartA) }
         }
         @{
             TransitionName = [Transition]::CtoA
