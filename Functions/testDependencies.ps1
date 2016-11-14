@@ -9,7 +9,9 @@ function Test-DependenciesMet
         $ConfigPath,
 
         [Parameter(position = 1)]
-        [System.Collections.Generic.Dictionary[string,ProgressNode]]
+        # Uncommenting the following line causes "cannot find overload" errors
+        # in unrelated parts of this module.
+        #[System.Collections.Generic.Dictionary[string,ProgressNode]]
         $Nodes
     )
     process
