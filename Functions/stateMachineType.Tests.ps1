@@ -103,6 +103,8 @@ Describe New-StateMachine {
                     TargetStateName = 'b'
                 }
             ) | New-Transition
+            $a = 1; $b = 2
+            $variables = Get-Variable 'a','b'
         }
         It 'returns exactly one statemachine' {
             $r = New-StateMachine $states $transitions
@@ -125,6 +127,13 @@ Describe New-StateMachine {
             $r.StateList.a.TransitionList.trigger1.TransitionName | Should be 'AtoB'
             $r.StateList.a.TransitionList.trigger2.TransitionName | Should be 'AtoB'
             $r.StateList.b.TransitionList.Count | Should be 0
+        }
+        It 'correctly populates action context variables' {
+            $r = New-StateMachine $states $transitions $variables
+            $r.ActionVariables[0].Name | Should be 'a'
+            $r.ActionVariables[0].Value | Should be '1'
+            $r.ActionVariables[1].Name | Should be 'b'
+            $r.ActionVariables[1].Value | Should be '2'
         }
     }
     Context 'duplicate default states' {
@@ -403,6 +412,43 @@ Describe Invoke-RunNext {
             $h.Action1 | Should be '1'
             $h.Action2 | Should be '2'
             $h.Action3 | Should be '3'
+        }
+    }
+    Context 'action variable accessible from action context' {
+        $a = @{ v1 = 1 }
+        $b = @{ v1 = 1}
+        $variables = Get-Variable 'a','b'
+        $states = @(
+            @{ 
+                StateName = 'a' ; IsDefaultState = $true
+                ExitActions = { 
+                    $a.v2 = $a.v1
+                    $b.v2 = $b.v1
+                }
+            }
+            @{ StateName = 'b' }
+        ) | New-State
+        $transitions =  @(
+            @{
+                TransitionName = 'AtoB'
+                Triggers = 'trigger'
+                SourceStateName = 'a'
+                TargetStateName = 'b'
+            }
+        ) | New-Transition
+        $sm = New-StateMachine $states $transitions $variables
+        It 'add event to trigger queue' {
+            $sm | Add-Event 'trigger'
+        }
+        It 'RunNext returns nothing' {
+            $a = 'another a'
+            $b = 'another b'
+            $r = $sm | Invoke-RunNext
+            $r | Should beNullOrEmpty
+        }
+        It 'action variables were read and written' {
+            $a.v2 | Should be 1
+            $b.v2 | Should be 1
         }
     }
     Context 'exception in exit action' {

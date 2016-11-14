@@ -26,9 +26,10 @@ class StateMachine
     
     [System.Collections.Generic.Queue[string]] 
     $TriggerQueue = [System.Collections.Generic.Queue[string]]::new()
+
+    [psvariable[]] $ActionVariables
     
     [SmState] $CurrentState
-    [SmState] $PreviousState
 
     RaiseEvent ( [string] $EventName )
     {
@@ -119,7 +120,7 @@ function Invoke-RunNext
             # invoke the exit actions
             foreach ( $action in $StateMachine.CurrentState.ExitActions )
             {
-                $action.InvokeWithContext($functions,$null) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionVariables) | Out-Null
             }
 
             # extract the transition
@@ -128,7 +129,7 @@ function Invoke-RunNext
             # invoke the transition actions
             foreach ( $action in $transition.TransitionActions )
             {
-                $action.InvokeWithContext($functions,$null) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionVariablesl) | Out-Null
             }
 
             # extract the next state
@@ -137,7 +138,7 @@ function Invoke-RunNext
             # invoke the entry actions
             foreach ( $action in $nextState.EntryActions )
             {
-                $action.InvokeWithContext($functions,$null) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionVariables) | Out-Null
             }
         }
         catch
@@ -232,7 +233,11 @@ function New-StateMachine
 
         [Parameter(position = 2)]
         [SmTransition[]]
-        $Transitions
+        $Transitions,
+
+        [Parameter(position = 3)]
+        [psvariable[]]
+        $ActionVariables
     )
     process
     {
@@ -313,6 +318,9 @@ function New-StateMachine
                 $outputObject.StateList.$($transition.SourceStateName).TransitionList.$trigger = $transition
             }
         }
+
+        # assign action variables
+        $outputObject.ActionVariables = $ActionVariables
 
         return $outputObject
     }
