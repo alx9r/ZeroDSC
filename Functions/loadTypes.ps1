@@ -6,8 +6,11 @@
     'resourceParamsType.ps1'
     'resourceConfigInfoType.ps1'
     'boundResourceType.ps1'
-    'configInfoType.ps1'
+    'configDocumentType.ps1'
 
-    'progressGraphType.ps1'
+    'configStepType.ps1'
+    'stateMachineType.ps1'
+    'progressNodeType.ps1'
+    'configInstructionsType.ps1'
 ) |
 % { . "$($PSCommandPath | Split-Path -Parent)\$_" }

@@ -30,7 +30,7 @@ class ConfigDocument
     [string]
     $Name
 
-    $Resources = (New-Object 'System.Collections.Generic.Dictionary`2[System.String,BoundResourceBase]')
+    $Resources = [System.Collections.Generic.Dictionary[System.String,BoundResourceBase]]::new()
 }
 
 

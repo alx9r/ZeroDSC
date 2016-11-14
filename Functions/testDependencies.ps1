@@ -10,15 +10,15 @@ function Test-DependenciesMet
 
         [Parameter(position = 1)]
         [System.Collections.Generic.Dictionary[string,ProgressNode]]
-        $Resources
+        $Nodes
     )
     process
     {
-        $parents = $Resources.$ConfigPath.Resource.Config.Params.DependsOn
+        $parents = $Nodes.$ConfigPath.Resource.Config.Params.DependsOn
 
         foreach ( $parent in $parents )
         {
-            if ( $Resources.$parent.Progress -ne [Progress]::Complete )
+            if ( $Nodes.$parent.Progress -ne [Progress]::Complete )
             {
                 return $false
             }

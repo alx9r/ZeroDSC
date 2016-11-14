@@ -43,6 +43,25 @@ class StateMachine
     {
         $this | Invoke-RunNext
     }
+    Reset ()
+    {
+        $this | Reset-StateMachine
+    }
+}
+
+function Reset-StateMachine
+{
+    [CmdletBinding()]
+    param
+    (
+        [parameter(ValueFromPipeline = $true)]
+        [StateMachine]
+        $StateMachine
+    )
+    process
+    {
+        throw [System.NotImplementedException]::new('Reset-StateMachine')
+    }
 }
 
 function Add-Event
@@ -63,7 +82,6 @@ function Add-Event
         $StateMachine.TriggerQueue.Enqueue($EventName) | Out-Null
     }
 }
-
 
 function Invoke-RunNext
 {

@@ -10,7 +10,7 @@ $records = @{}
 Describe Test-DependenciesMet {
     Context 'resource nodes' {
         It 'create test dictionary' {
-            $records.Resources = New-ConfigDocument Name {
+            $records.Nodes = New-ConfigDocument Name {
                 Get-DscResource StubResource5 | Import-DscResource
                 StubResource5 'a' @{ Mode = 'Normal' }
                 StubResource5 'b' @{ 
@@ -24,33 +24,33 @@ Describe Test-DependenciesMet {
             } |
                 ConvertTo-ConfigDocument |
                 ConvertTo-ProgressGraph |
-                % Resources
+                % Nodes
         }
         It 'returns exactly one boolean' {
-            $r = '[StubResource5]a' | Test-DependenciesMet $records.Resources
+            $r = '[StubResource5]a' | Test-DependenciesMet $records.Nodes
             $r | Should beOfType ([bool])
             $r.Count | Should be 1
         }
         It 'returns true for no DependsOn' {
-            $r = '[StubResource5]a' | Test-DependenciesMet $records.Resources
+            $r = '[StubResource5]a' | Test-DependenciesMet $records.Nodes
             $r | Should be $true
         }
         It 'returns false for incomplete single parent' {
-            $r = '[StubResource5]b' | Test-DependenciesMet $records.Resources
+            $r = '[StubResource5]b' | Test-DependenciesMet $records.Nodes
             $r | Should be $false
         }
         It 'returns true for complete single parent' {
-            $records.Resources.'[StubResource5]a'.Progress = 'Complete'
-            $r = '[StubResource5]b' | Test-DependenciesMet $records.Resources
+            $records.Nodes.'[StubResource5]a'.Progress = 'Complete'
+            $r = '[StubResource5]b' | Test-DependenciesMet $records.Nodes
             $r | Should be $true
         }
         It 'returns false for one parent complete another parent incomplete' {
-            $r = '[StubResource5]c' | Test-DependenciesMet $records.Resources
+            $r = '[StubResource5]c' | Test-DependenciesMet $records.Nodes
             $r | Should be $false      
         }
         It 'returns true for two complete parents' {
-            $records.Resources.'[StubResource5]b'.Progress = 'Complete'
-            $r = '[StubResource5]c' | Test-DependenciesMet $records.Resources
+            $records.Nodes.'[StubResource5]b'.Progress = 'Complete'
+            $r = '[StubResource5]c' | Test-DependenciesMet $records.Nodes
             $r | Should be $true
         }
     }

@@ -5,14 +5,17 @@ function New-ConfigStateMachine
     param
     (
         # Tests the current node.  Raises a [TestNodeEvent].
+        [Parameter(Position = 1)]
         [scriptblock]
         $TestNode,
 
         # Moves the resource enumerator to the next resource.
+        [Parameter(Position = 2)]
         [scriptblock]
         $MoveNext,
 
         # Resets the resource enumerator.
+        [Parameter(Position = 3)]
         [scriptblock]
         $Reset
     )

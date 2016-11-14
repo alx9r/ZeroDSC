@@ -1,11 +1,13 @@
 enum ConfigPhase
 {
+    Undefined
     Pretest
     Configure
 }
 
 enum ConfigStepResultCode
 {
+    Undefined
     Success
     Failure
     Unknown
@@ -30,11 +32,11 @@ class ConfigStep
 {
     [string] $Message
     [ConfigPhase] $Phase
-    [Scriptblock] $Invoker
+    [Scriptblock] $Action
 
     [ConfigStepResult] Invoke ()
     {
-        return $this.Invoker.InvokeReturnAsIs()
+        return $this.Action.InvokeReturnAsIs()
     }
 }
 
