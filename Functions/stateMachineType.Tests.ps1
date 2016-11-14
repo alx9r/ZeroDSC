@@ -130,10 +130,10 @@ Describe New-StateMachine {
         }
         It 'correctly populates action context variables' {
             $r = New-StateMachine $states $transitions $variables
-            $r.ActionVariables[0].Name | Should be 'a'
-            $r.ActionVariables[0].Value | Should be '1'
-            $r.ActionVariables[1].Name | Should be 'b'
-            $r.ActionVariables[1].Value | Should be '2'
+            $r.ActionArgs[0].Name | Should be 'a'
+            $r.ActionArgs[0].Value | Should be '1'
+            $r.ActionArgs[1].Name | Should be 'b'
+            $r.ActionArgs[1].Value | Should be '2'
         }
     }
     Context 'duplicate default states' {

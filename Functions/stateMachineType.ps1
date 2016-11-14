@@ -27,7 +27,7 @@ class StateMachine
     [System.Collections.Generic.Queue[string]] 
     $TriggerQueue = [System.Collections.Generic.Queue[string]]::new()
 
-    [psvariable[]] $ActionVariables
+    [psvariable[]] $ActionArgs
     
     [SmState] $CurrentState
 
@@ -120,7 +120,7 @@ function Invoke-RunNext
             # invoke the exit actions
             foreach ( $action in $StateMachine.CurrentState.ExitActions )
             {
-                $action.InvokeWithContext($functions,$StateMachine.ActionVariables) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionArgs) | Out-Null
             }
 
             # extract the transition
@@ -129,7 +129,7 @@ function Invoke-RunNext
             # invoke the transition actions
             foreach ( $action in $transition.TransitionActions )
             {
-                $action.InvokeWithContext($functions,$StateMachine.ActionVariablesl) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionArgsl) | Out-Null
             }
 
             # extract the next state
@@ -138,7 +138,7 @@ function Invoke-RunNext
             # invoke the entry actions
             foreach ( $action in $nextState.EntryActions )
             {
-                $action.InvokeWithContext($functions,$StateMachine.ActionVariables) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionArgs) | Out-Null
             }
         }
         catch
@@ -237,7 +237,7 @@ function New-StateMachine
 
         [Parameter(position = 3)]
         [psvariable[]]
-        $ActionVariables
+        $ActionArgs
     )
     process
     {
@@ -320,7 +320,7 @@ function New-StateMachine
         }
 
         # assign action variables
-        $outputObject.ActionVariables = $ActionVariables
+        $outputObject.ActionArgs = $ActionArgs
 
         return $outputObject
     }
