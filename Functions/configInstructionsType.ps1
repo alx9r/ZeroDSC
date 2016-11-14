@@ -83,21 +83,21 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
         $testNode = { 
             if
             (
-                $null -eq $this.NodeEnumerator.Value -and
-                -not $this.NodeEnumerator.MoveNext()
+                $null -eq $this430f9fa0.NodeEnumerator.Value -and
+                -not $this430f9fa0.NodeEnumerator.MoveNext()
             )
             {
                 RaiseEvent( [Event]::AtEndOfCollection )
                 return
             }
 
-            if ( [Progress]::Complete -eq $this.NodeEnumerator.Value.Progress )
+            if ( [Progress]::Complete -eq $this430f9fa0.NodeEnumerator.Value.Progress )
             {
                 RaiseEvent( [Event]::AtNodeComplete )
                 return
             }
 
-            if ( $this.NodeEnumerator.Key | Test-DependenciesMet )
+            if ( $this430f9fa0.NodeEnumerator.Key | Test-DependenciesMet )
             {
                 RaiseEvent( [Event]::AtNodeReady )
                 return
@@ -107,10 +107,10 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
         }
 
         # scriptblock that moves to the next node
-        $moveNext = { $this.NodeEnumerator.MoveNext() }
+        $moveNext = { $this430f9fa0.NodeEnumerator.MoveNext() }
 
         # scriptblock that resets the enumerator
-        $reset = { $this.NodeEnumerator.Reset() }
+        $reset = { $this430f9fa0.NodeEnumerator.Reset() }
 
         $this.StateMachine = New-ConfigStateMachine $testNode $moveNext $reset
     }
@@ -122,6 +122,7 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
 
     [bool] MoveNext () 
     {
+        $this430f9fa0 = $this
         $this.StateMachine | Invoke-RunAllQueued
         if ( $this.StateMachine.CurrentState.StateName -eq 'Ended' )
         {
