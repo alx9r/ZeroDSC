@@ -39,6 +39,7 @@ Describe 'ConfigStateMachine run through' {
         TestNode = { $h.TestNode = 'invoked' }
         MoveNext = { $e.MoveNext() }
         Reset = { $e.Reset() }
+        ActionArgs = Get-Variable 'h'
     }
     $sm = New-ConfigStateMachine @splat
     Context 'state IdleExternal' {
@@ -50,7 +51,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition StartPretest' {
         It 'Start' { $sm.RaiseEvent( [Event]::Start ) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to node a' { $e.Current | Should be 'a' }
     }
     Context 'state PretestDistpatch' {
@@ -74,7 +75,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition EndResourcePretest (TestCompleteSuccess)' {
         It 'TestCompleteSuccess' { $sm.RaiseEvent([Event]::TestCompleteSuccess) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to node b' { $e.Current | Should be 'b' }
     }
     Context 'state PretestDispatch' {
@@ -98,7 +99,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition EndResourcePretest (TestCompleteFailure)' {
         It 'TestCompleteSuccess' { $sm.RaiseEvent([Event]::TestCompleteFailure) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to node c' { $e.Current | Should be 'c' }
     }
     Context 'state PretestDispatch' {
@@ -122,7 +123,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition EndResourcePretest (TestCompleteSuccess)' {
         It 'TestCompleteSuccess' { $sm.RaiseEvent([Event]::TestCompleteSuccess) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to end of collection' { 
             $e.Current | Should beNullOrEmpty
             $e.MoveNext() | Should be $false
@@ -139,7 +140,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition StartConfigure' {
         It 'AtEndOfCollection' { $sm.RaiseEvent([Event]::AtEndOfCollection) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to a' { $e.Current | Should be 'a' }
     }
     Context 'state ConfigureDispatch' {
@@ -153,7 +154,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition MoveConfigureNextResource (AtNodeReady)' {
         It 'AtNodeNotReady' { $sm.RaiseEvent([Event]::AtNodeNotReady) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to b' { $e.Current | Should be 'b' }
     }
     Context 'state ConfigureDispatch' {
@@ -187,7 +188,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition EndConfigureResourceSuccess' {
         It 'TestCompleteSuccess' { $sm.RaiseEvent([Event]::TestCompleteSuccess) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
     }
     Context 'state ConfigureProgressDispatch' {
         It 'correct state' {
@@ -200,7 +201,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition MoveConfigureProgressNextResource (AtNodeComplete)' {
         It 'AtNodeComplete' { $sm.RaiseEvent([Event]::AtNodeComplete) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to c' { $e.Current | Should be 'c' }
     }
     Context 'state ConfigureProgressDispatch' {
@@ -214,7 +215,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition MoveConfigureProgressNextResource (AtNodeComplete)' {
         It 'AtNodeComplete' { $sm.RaiseEvent([Event]::AtNodeComplete) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to end of collection' { 
             $e.Current | Should beNullOrEmpty
             $e.MoveNext() | Should be $false
@@ -231,7 +232,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition StartNewConfigurePass' {
         It 'AtEndOfCollection' { $sm.RaiseEvent([Event]::AtEndOfCollection) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to a' { $e.Current | Should be 'a' }
     }
     Context 'state ConfigureDispatch' {
@@ -245,7 +246,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition MoveConfigureProgressNextResource (AtNodeComplete)' {
         It 'AtNodeComplete' { $sm.RaiseEvent([Event]::AtNodeComplete) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to b' { $e.Current | Should be 'b' }
     }
     Context 'state ConfigureDispatch' {
@@ -259,7 +260,7 @@ Describe 'ConfigStateMachine run through' {
     }
     Context 'transition MoveConfigureProgressNextResource (AtNodeNotReady)' {
         It 'AtNodeComplete' { $sm.RaiseEvent([Event]::AtNodeNotReady) }
-        It 'RunNext()' { $sm.RunNext() }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to c' { $e.Current | Should be 'c' }
     }
     Context 'state ConfigureDispatch' {

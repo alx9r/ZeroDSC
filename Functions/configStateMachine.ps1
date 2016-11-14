@@ -17,7 +17,11 @@ function New-ConfigStateMachine
         # Resets the resource enumerator.
         [Parameter(Position = 3)]
         [scriptblock]
-        $Reset
+        $Reset,
+
+        [Parameter(Position = 4)]
+        [psvariable[]]
+        $ActionArgs
     )
     process
     {
@@ -251,6 +255,6 @@ function New-ConfigStateMachine
             }
         ) | New-Transition
 
-        return New-StateMachine $states $transitions
+        return New-StateMachine $states $transitions $ActionArgs
     }
 }
