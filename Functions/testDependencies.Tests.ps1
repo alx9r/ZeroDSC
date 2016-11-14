@@ -23,8 +23,8 @@ Describe Test-DependenciesMet {
                 }
             } |
                 ConvertTo-ConfigDocument |
-                ConvertTo-ProgressGraph |
-                % Nodes
+                % Resources |
+                New-ProgressNodes
         }
         It 'returns exactly one boolean' {
             $r = '[StubResource5]a' | Test-DependenciesMet $records.Nodes
