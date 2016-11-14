@@ -1,10 +1,9 @@
 enum Progress
 {
+    Undefined
     Complete
     Pending
-    SetButNotTested
     Failed
-    Undefined
 }
 class ProgressNode {
     [Progress] $Progress = [Progress]::Pending

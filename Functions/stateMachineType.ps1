@@ -112,7 +112,7 @@ function Invoke-RunNext
 
         try
         {
-            # prepare the actions' invocation context variable
+            # prepare the actions' invocation context
             $functions = @{
                 RaiseEvent = { param($EventName) $StateMachine.RaiseEvent($EventName) }
             }

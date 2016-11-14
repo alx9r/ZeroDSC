@@ -10,10 +10,10 @@ enum ConfigStepResultCode
     Undefined
     Success
     Failure
-    Unknown
+    Complete
 }
 
-enum ConfigStepType
+enum ConfigStepVerb
 {
     Get
     Set
@@ -25,18 +25,21 @@ class ConfigStepResult
     $Raw
     [string] $Message
     [ConfigStepResultCode] $Code
-    [ConfigStepType] $Type
+    [ConfigStep] $Step
 }
 
 class ConfigStep
 {
     [string] $Message
     [ConfigPhase] $Phase
+    [ConfigStepVerb] $Verb
     [Scriptblock] $Action
+    [psvariable[]] $ActionArgs
+    [StateMachine] $StateMachine
 
     [ConfigStepResult] Invoke ()
     {
-        return $this.Action.InvokeReturnAsIs()
+        return $this | Invoke-ConfigStep
     }
 }
 
@@ -49,8 +52,8 @@ function New-ConfigStepResult
         [string]
         $Message,
 
-        [ConfigStepType]
-        $Type,
+        [ConfigStep]
+        $Step,
 
         $Raw
     )
@@ -60,12 +63,14 @@ function New-ConfigStepResult
         {
             $true   { $code = [ConfigStepResultCode]::Success }
             $false  { $code = [ConfigStepResultCode]::Failure }
-            default { $code = [ConfigStepResultCode]::Unknown }
+            $null   { $code = [ConfigStepResultCode]::Complete }
+            default { $code = [ConfigStepResultCode]::Undefined }
         }
         New-Object ConfigStepResult -Property @{
             Raw = $Raw
             Code = $code
             Message = $Message
+            Step = $Step
         }
     }
 }

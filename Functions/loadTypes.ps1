@@ -8,8 +8,8 @@
     'boundResourceType.ps1'
     'configDocumentType.ps1'
 
-    'configStepType.ps1'
     'stateMachineType.ps1'
+    'configStepType.ps1'
     'progressNodeType.ps1'
     'configInstructionsType.ps1'
 ) |

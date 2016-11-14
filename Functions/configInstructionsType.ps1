@@ -192,15 +192,83 @@ function Get-CurrentConfigStep
             ConfigureProgressWaitForSetExternal = 'Configure'
         }.$($InputObject.StateMachine.CurrentState.StateName)
 
-        # create the output object
-        $outputObject = [ConfigStep]::new()
+        # create the output object and populate some fields
+        $outputObject = New-Object ConfigStep -Property @{
+            Message = "$verb resource $($InputObject.NodeEnumerator.Key)"
+            Verb = $verb
+            Phase = $phase
+            StateMachine = $InputObject.StateMachine
+        }
 
-        # populate the message
-        $outputObject.Message = "$verb resource $($InputObject.NodeEnumerator.Key)"
+        # populate the action
+        $outputObject.Action = @{
+            Test = { 
+                # invoke the test
+                $result = $resource.Resource.Invoke('Test')
 
-        # populate the phase
-        $outputObject.Phase = $phase
+                # raise the completion event
+                RaiseEvent(@{
+                    $false = 'TestCompleteFailure'
+                    $true = 'TestCompleteSuccess'
+                }.([bool]$result))
+
+                # report the node's progress
+                $resource.Progress = @{
+                    Pretest = @{
+                        $false = 'Pending'
+                        $true = 'Complete'
+                    }
+                    Configure = @{
+                        $false = 'Failed'
+                        $true = 'Complete'
+                    }
+                }.$phase.([bool]$result)
+
+                return $result
+            }
+            Set = {
+                # invoke the set
+                $resource.Resource.Invoke('Set')
+
+                # raise the completion event
+                RaiseEvent('SetComplete')
+            }
+        }.$verb
+
+        # populate the action arguments
+        $resource = $InputObject.NodeEnumerator.Value
+        $outputObject.ActionArgs = Get-Variable 'resource','phase'
 
         return $outputObject
+    }
+}
+
+function Invoke-ConfigStep
+{
+    [CmdletBinding()]
+    [OutputType([ConfigStepResult])]
+    param
+    (
+        [Parameter(ValueFromPipeline = $true)]
+        [ConfigStep]
+        $ConfigStep
+    )
+    process
+    {
+        # prepare the actions' invocation context
+        $functions = @{
+            RaiseEvent = { param($EventName) $ConfigStep.StateMachine.RaiseEvent($EventName) }
+        }
+
+        # invoke the action
+        $rawResult = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
+
+        # return the result object
+        $splat = @{
+            Message = $ConfigStep.Message + ' Complete'
+            Step = $ConfigStep
+            Raw = $rawResult
+        }
+        return New-ConfigStepResult @splat
     }
 }

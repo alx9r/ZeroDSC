@@ -134,27 +134,293 @@ Describe 'Get-CurrentConfigStep' {
         It '.MoveNext()' {
             $h.e.MoveNext() | Should be $true
         }
-        It 'enumerator at node of second resource' {
+        It 'enumerator at node of first resource' {
             $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
         }
-        It 'state PretestWaitForExternalTest' {
+        It 'correct state' {
             $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
         }
         It 'returns exactly one ConfigStep object' {
-            $h.Test = Get-CurrentConfigStep -InputObject $h.e
-            $h.Test.Count | Should be 1
-            $h.Test.GetType() | Should be 'ConfigStep'
+            $h.PretestTest = Get-CurrentConfigStep -InputObject $h.e
+            $h.PretestTest.Count | Should be 1
+            $h.PretestTest.GetType() | Should be 'ConfigStep'
         }
         It 'populates Message' {
-            $h.Test.Message | Should match 'Test resource \[StubResource5\]a'
+            $h.PretestTest.Message | Should match 'Test resource \[StubResource5\]a'
+        }
+        It 'populates verb' {
+            $h.PretestTest.Verb | Should be 'Test'
         }
         It 'populates phase' {
-            $h.Test.Phase | Should match 'Pretest'
+            $h.PretestTest.Phase | Should match 'Pretest'
         }
         It 'populates action' {
-            $h.Test.Action | Should not beNullOrEmpty
+            $h.PretestTest.Action | Should not beNullOrEmpty
+        }
+        It 'populates action args' {
+            $h.PretestTest.ActionArgs | Should not beNullOrEmpty
+        }
+        It 'includes a reference to the state machine' {
+            $h.PretestTest.StateMachine.GetType() | Should be 'StateMachine'
         }
     }
-    Context 'Configure Set' {}
-    Context 'Configure Test' {}
+    Context 'Configure Set' {
+        It '.MoveNext()' {
+            $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
+            $h.e.MoveNext() | Should be $true
+            $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'enumerator at node of first resource' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+        }
+        It 'correct state' {
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
+        }
+        It 'returns exactly one ConfigStep object' {
+            $h.ConfigureSet = Get-CurrentConfigStep -InputObject $h.e
+            $h.ConfigureSet.Count | Should be 1
+            $h.ConfigureSet.GetType() | Should be 'ConfigStep'
+        }
+        It 'populates Message' {
+            $h.ConfigureSet.Message | Should match 'Set resource \[StubResource5\]a'
+        }
+        It 'populates verb' {
+            $h.ConfigureSet.Verb | Should be 'Set'
+        }
+        It 'populates phase' {
+            $h.ConfigureSet.Phase | Should match 'Configure'
+        }
+    }
+    Context 'Configure Test' {
+        It '.MoveNext()' {
+            $h.e.StateMachine.RaiseEvent('SetComplete')
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'enumerator at node of first resource' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+        }
+        It 'correct state' {
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForTestExternal'
+        }
+        It 'returns exactly one ConfigStep object' {
+            $h.ConfigureTest = Get-CurrentConfigStep -InputObject $h.e
+            $h.ConfigureTest.Count | Should be 1
+            $h.ConfigureTest.GetType() | Should be 'ConfigStep'
+        }
+        It 'populates Message' {
+            $h.ConfigureTest.Message | Should match 'Test resource \[StubResource5\]a'
+        }
+        It 'populates verb' {
+            $h.ConfigureTest.Verb | Should be 'Test'
+        }
+        It 'populates phase' {
+            $h.ConfigureTest.Phase | Should match 'Configure'
+        }
+    }
+}
+
+Describe 'Invoke-ConfigStep' {
+    $h = @{}
+    Context 'arrange' {
+        It 'create test document' {
+            $h.doc = New-ConfigDocument Name {
+                Get-DscResource StubResource5 | Import-DscResource
+                StubResource5 'a' @{ Mode = 'already set' }
+                StubResource5 'b' @{ Mode = 'normal' }
+                StubResource5 'c' @{ Mode = 'incorrigible' }
+            } |
+                ConvertTo-ConfigDocument
+        }
+        It 'New-' {
+            $h.e = $h.doc | New-ConfigInstructionEnumerator
+        }
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+    }
+    Context 'Pretest Test- Success' {
+        It 'returns a test step' {
+            $h.Step = Get-CurrentConfigStep -InputObject $h.e
+            $h.Step.Verb | Should be 'Test'
+            $h.Step.Phase | Should be 'Pretest'
+        }
+        It 'state machine initially has empty trigger queue' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 0
+        }
+        It 'progress was initially pending' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'Invoke' {
+            $h.TestResult = $h.Step | Invoke-ConfigStep
+        }
+        It 'correct event was raised' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 1
+            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteSuccess'
+        }
+        It 'reports correct progress' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Complete'
+        }
+        It 'returns exactly one result object' {
+            $h.TestResult.Count | Should be 1
+            $h.TestResult.GetType() | Should be ConfigStepResult
+        }
+        It 'populates message' {
+            $h.TestResult.Message | Should match 'Test'
+            $h.TestResult.Message | Should match '\[StubResource5\]a'
+            $h.TestResult.Message | Should match 'Complete'
+        }
+        It 'populates result code' {
+            $h.TestResult.Code | Should be 'Success'
+        }
+        It 'populates step' {
+            $h.TestResult.Step.GetType() | Should be 'ConfigStep'
+        }
+    }
+    Context 'Pretest Test- Failure' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'returns correct step' {
+            $h.Step = Get-CurrentConfigStep -InputObject $h.e
+            $h.Step.Verb | Should be 'Test'
+            $h.Step.Phase | Should be 'Pretest'
+        }
+        It 'state machine initially has empty trigger queue' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 0
+        }
+        It 'progress was initially pending' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'Invoke' {
+            $h.TestResult = $h.Step | Invoke-ConfigStep
+        }
+        It 'reports correct progress' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'correct event was raised' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 1
+            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteFailure'
+        }
+        It 'populates message' {
+            $h.TestResult.Message | Should match 'Test'
+        }
+        It 'populates result code' {
+            $h.TestResult.Code | Should be 'Failure'
+        }
+    }
+    Context 'Advance' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'invoke the step' {
+            Get-CurrentConfigStep -InputObject $h.e | 
+                Invoke-ConfigStep
+        }
+    }
+    Context 'Configure Set-' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'returns correct step' {
+            $h.Step = Get-CurrentConfigStep -InputObject $h.e
+            $h.Step.Verb | Should be 'Set'
+            $h.Step.Phase | Should be 'Configure'
+        }
+        It 'state machine initially has empty trigger queue' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 0
+        }
+        It 'progress was initially pending' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'Invoke' {
+            $h.TestResult = $h.Step | Invoke-ConfigStep
+        }
+        It 'progress remains pending' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'correct event was raised' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 1
+            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'SetComplete'
+        }
+        It 'populates message' {
+            $h.TestResult.Message | Should match 'Set'
+        }
+        It 'populates result code' {
+            $h.TestResult.Code | Should be 'Complete'
+        }
+    }
+    Context 'Configure Test- Success' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'returns correct step' {
+            $h.Step = Get-CurrentConfigStep -InputObject $h.e
+            $h.Step.Verb | Should be 'Test'
+            $h.Step.Phase | Should be 'Configure'
+        }
+        It 'state machine initially has empty trigger queue' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 0
+        }
+        It 'progress was initially pending' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'Invoke' {
+            $h.TestResult = $h.Step | Invoke-ConfigStep
+        }
+        It 'reports correct progress' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Complete'
+        }
+        It 'correct event was raised' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 1
+            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteSuccess'
+        }
+        It 'populates message' {
+            $h.TestResult.Message | Should match 'Test'
+        }
+        It 'populates result code' {
+            $h.TestResult.Code | Should be 'Success'
+        }
+    }
+    Context 'Advance' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'invoke the step' {
+            Get-CurrentConfigStep -InputObject $h.e | 
+                Invoke-ConfigStep
+        }
+    }
+    Context 'Configure Test- Failure' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'returns correct step' {
+            $h.Step = Get-CurrentConfigStep -InputObject $h.e
+            $h.Step.Verb | Should be 'Test'
+            $h.Step.Phase | Should be 'Configure'
+        }
+        It 'state machine initially has empty trigger queue' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 0
+        }
+        It 'progress was initially pending' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
+        }
+        It 'Invoke' {
+            $h.TestResult = $h.Step | Invoke-ConfigStep
+        }
+        It 'reports correct progress' {
+            $h.e.NodeEnumerator.Value.Progress | Should be 'Failed'
+        }
+        It 'correct event was raised' {
+            $h.e.StateMachine.TriggerQueue.Count | Should be 1
+            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteFailure'
+        }
+        It 'populates message' {
+            $h.TestResult.Message | Should match 'Test'
+        }
+        It 'populates result code' {
+            $h.TestResult.Code | Should be 'Failure'
+        }
+    }
 }
