@@ -167,6 +167,209 @@ Describe '.MoveNext() no step invokations' {
     }
 }
 
+Describe '.MoveNext() skip configure set invokation (no progress)' {
+    $h = @{}
+    It 'create test document' {
+        $h.doc = New-ConfigDocument Name {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        } |
+            ConvertTo-ConfigDocument
+    }
+    It 'New-' {
+        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    }
+    Context 'Pretest' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'skipping invokation of Configure Set...' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
+        }
+    }
+    Context '...skips invokation Configure Test' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
+        }
+        It 'node marked skipped' {
+            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'Skipped'
+        }
+    }
+    Context 'Set and Test of remaining node unaffected' {
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'End' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
+    }
+}
+
+Describe '.MoveNext() skip configure set invokation (progress)' {
+    $h = @{}
+    It 'create test document' {
+        $h.doc = New-ConfigDocument Name {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+            StubResource5 'c' @{ Mode = 'Normal' }
+        } |
+            ConvertTo-ConfigDocument
+    }
+    It 'New-' {
+        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    }
+    Context 'Pretest' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'Set/Test (no progress)' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'skipping invokation of Configure Set (progress)...' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]c'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureProgressWaitForSetExternal'
+        }
+    }
+    Context '...skips invokation Configure Test' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
+        }
+    }
+    Context 'Set and Test of remaining node unaffected' {
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'End' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
+    }
+}
+
+Describe '.MoveNext() skip configure test invokation (no progress)' {
+    $h = @{}
+    It 'create test document' {
+        $h.doc = New-ConfigDocument Name {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        } |
+            ConvertTo-ConfigDocument
+    }
+    It 'New-' {
+        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    }
+    Context 'Pretest' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'skipping invokation of Configure Test (progress)...' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForTestExternal'
+        }
+    }
+    Context '...marks node as skipped.' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'node marked as skipped' {
+            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'skipped'
+        }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
+        }
+    }
+    Context 'Set and Test of remaining node unaffected' {
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'End' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
+    }
+}
+
+Describe '.MoveNext() skip configure test invokation (progress)' {
+    $h = @{}
+    It 'create test document' {
+        $h.doc = New-ConfigDocument Name {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+            StubResource5 'c' @{ Mode = 'Normal' }
+        } |
+            ConvertTo-ConfigDocument
+    }
+    It 'New-' {
+        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    }
+    Context 'Pretest' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'Set/Test (no progress)' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'skipping invokation of Configure Test (progress)...' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]c'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureProgressWaitForTestExternal'
+        }
+    }
+    Context '...marks node as skipped.' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It 'node marked as skipped' {
+            $h.e.Nodes.'[StubResource5]c'.Progress | Should be 'skipped'
+        }
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
+        }
+    }
+    Context 'Set and Test of remaining node unaffected' {
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
+        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
+    }
+    Context 'End' {
+        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
+    }
+}
+
 Describe 'Get-CurrentConfigStep' {
     $h = @{}
     It 'create test document' {

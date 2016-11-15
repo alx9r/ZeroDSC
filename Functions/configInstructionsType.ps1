@@ -106,7 +106,7 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
                 return
             }
 
-            if ( $this.NodeEnumerator.Key | Test-DependenciesMet )
+            if ( $this.NodeEnumerator.Key | Test-DependenciesMet $this.Nodes )
             {
                 RaiseEvent( [Event]::AtNodeReady )
                 return

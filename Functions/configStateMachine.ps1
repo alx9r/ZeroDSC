@@ -94,6 +94,7 @@ function New-ConfigStateMachine
             # Configure Phase (No Progress)
             StartConfigure
             StartConfigureResourceSet
+            SkipConfigureResourceTest
             StartConfigureResourceTest
             EndConfigureResourceSuccess
             EndConfigureResourceFailed
@@ -102,6 +103,7 @@ function New-ConfigStateMachine
             # Configure Phase (Progress)
             StartConfigureProgressResourceSet
             StartConfigureProgressResourceTest
+            SkipConfigureProgressResourceTest
             EndConfigureProgressResource
             MoveConfigureProgressNextResource
             StartNewConfigurePass
@@ -195,9 +197,15 @@ function New-ConfigStateMachine
                 SourceStateName = [State]::ConfigureDispatch
                 TargetStateName = [State]::ConfigureWaitForSetExternal
             }
+            @{
+                TransitionName = [Transition]::SkipConfigureResourceTest
+                Triggers = [Event]::StepSkipped
+                SourceStateName = [State]::ConfigureWaitForSetExternal
+                TargetStateName = [State]::ConfigureDispatch
+            }
             @{ 
                 TransitionName = [Transition]::StartConfigureResourceTest
-                Triggers = [Event]::SetComplete,[Event]::StepSkipped
+                Triggers = [Event]::SetComplete
                 SourceStateName = [State]::ConfigureWaitForSetExternal
                 TargetStateName = [State]::ConfigureWaitForTestExternal
             }
@@ -228,9 +236,15 @@ function New-ConfigStateMachine
                 SourceStateName = [State]::ConfigureProgressDispatch
                 TargetStateName = [State]::ConfigureProgressWaitForSetExternal
             }
+            @{
+                TransitionName = [Transition]::SkipConfigureProgressResourceTest
+                Triggers = [Event]::StepSkipped
+                SourceStateName = [State]::ConfigureProgressWaitForSetExternal
+                TargetStateName = [State]::ConfigureProgressDispatch
+            }
             @{ 
                 TransitionName = [Transition]::StartConfigureProgressResourceTest
-                Triggers = [Event]::SetComplete,[Event]::StepSkipped
+                Triggers = [Event]::SetComplete
                 SourceStateName = [State]::ConfigureProgressWaitForSetExternal
                 TargetStateName = [State]::ConfigureProgressWaitForTestExternal
             }
