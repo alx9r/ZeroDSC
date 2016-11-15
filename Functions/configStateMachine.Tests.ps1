@@ -67,9 +67,9 @@ Describe 'ConfigStateMachine run through' {
         It 'AtNodeReady' { $sm.RaiseEvent( [Event]::AtNodeNotReady ) }
         It 'RunNext()' { $sm.RunNext() }
     }
-    Context 'state PretestWaitForExternalTest (node a)' {
+    Context 'state PretestWaitForTestExternal (node a)' {
         It 'correct state' {
-            $sm.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
+            $sm.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
         }
         It 'at node a' { $e.Current | Should be 'a' }
     }
@@ -91,9 +91,9 @@ Describe 'ConfigStateMachine run through' {
         It 'AtNodeReady' { $sm.RaiseEvent( [Event]::AtNodeReady) }
         It 'RunNext()' { $sm.RunNext() }
     }
-    Context 'state PretestWaitForExternalTest (node b)' {
+    Context 'state PretestWaitForTestExternal (node b)' {
         It 'correct state' {
-            $sm.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
+            $sm.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
         }
         It 'at node b' { $e.Current | Should be 'b' }
     }
@@ -115,9 +115,9 @@ Describe 'ConfigStateMachine run through' {
         It 'AtNodeReady' { $sm.RaiseEvent( [Event]::AtNodeNotReady) }
         It 'RunNext()' { $sm.RunNext() }
     }
-    Context 'state PretestWaitForExternalTest (node c)' {
+    Context 'state PretestWaitForTestExternal (node c)' {
         It 'correct state' {
-            $sm.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
+            $sm.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
         }
         It 'at node c' { $e.Current | Should be 'c' }
     }
@@ -203,6 +203,39 @@ Describe 'ConfigStateMachine run through' {
         It 'AtNodeComplete' { $sm.RaiseEvent([Event]::AtNodeComplete) }
         It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
         It 'moved to c' { $e.Current | Should be 'c' }
+    }
+    Context 'state ConfigureProgressDispatch' {
+        It 'correct state' {
+            $sm.CurrentState.StateName | Should be 'ConfigureProgressDispatch'
+        }
+        It 'TestNode was invoked' {
+            $h.TestNode | Should be 'invoked'
+            $h.Remove( 'TestNode' )
+        }
+    }
+    Context 'transition StartProgressConfigureResourceSet' {
+        It 'AtNodeReady' { $sm.RaiseEvent([Event]::AtNodeReady ) }
+        It 'RunNext()' { $sm.RunNext() }
+    }
+    Context 'state ConfigureWaitForSetExternal (node c)' {
+        It 'correct state' { 
+            $sm.CurrentState.StateName | Should be 'ConfigureProgressWaitForSetExternal'
+        }
+        It 'at node c' { $e.Current | Should be 'c' }
+    }
+    Context 'transition StartProgressConfigureResourceTest' {
+        It 'SetComplete' { $sm.RaiseEvent([Event]::SetComplete) }
+        It 'RunNext()' { $sm.RunNext() }
+    }
+    Context 'state ConfigureProgressWaitForTestExternal (node c)' {
+        It 'correct state' {
+            $sm.CurrentState.StateName | Should be 'ConfigureProgressWaitForTestExternal'
+        }
+        It 'at node c' { $e.Current | Should be 'c' }
+    }
+    Context 'transition EndProgressConfigureResource (TestCompleteSuccess)' {
+        It 'TestCompleteSuccess' { $sm.RaiseEvent([Event]::TestCompleteSuccess) }
+        It 'RunNext()' { $h = 'another h'; $sm.RunNext() }
     }
     Context 'state ConfigureProgressDispatch' {
         It 'correct state' {

@@ -51,6 +51,7 @@ enum Event
     AtNodeReady
     AtNodeNotReady
     AtNodeComplete
+    AtNodeSkipped
 
     # Test Resource
     TestCompleteSuccess
@@ -67,6 +68,8 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
     $NodeEnumerator
 
     [StateMachine] $StateMachine
+
+    [ConfigStep] $CurrentStep
 
     ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument )
     {
@@ -94,6 +97,12 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
             if ( [Progress]::Complete -eq $this.NodeEnumerator.Value.Progress )
             {
                 RaiseEvent( [Event]::AtNodeComplete )
+                return
+            }
+
+            if ( [Progress]::Skipped -eq $this.NodeEnumerator.Value.Progress )
+            {
+                RaiseEvent( [Event]::AtNodeSkipped )
                 return
             }
 
@@ -125,12 +134,7 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
 
     [bool] MoveNext () 
     {
-        $this.StateMachine | Invoke-RunAllQueued
-        if ( $this.StateMachine.CurrentState.StateName -eq 'Ended' )
-        {
-            return $false
-        }
-        return $true
+        return Move-NextConfigStep -Enumerator $this
     }
 
     Reset ()
@@ -157,12 +161,53 @@ function New-ConfigInstructionEnumerator
     }
 }
 
+function Move-NextConfigStep
+{
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param
+    (
+        [ConfigInstructionEnumerator]
+        $Enumerator
+    )
+    process
+    {
+        # the current step has not been invoked
+        if 
+        (
+            $Enumerator.StateMachine.CurrentState.StateName -match
+            '(Pretest|Configure).*External' -and
+            -not $Enumerator.CurrentStep.Invoked
+        )
+        {
+            # mark the node as skipped
+            $Enumerator.NodeEnumerator.Value.Progress = 'Skipped'
+
+            # raise the skipped event
+            $Enumerator.StateMachine.RaiseEvent('StepSkipped')
+        }
+
+        # clear the reference to the config step
+        $Enumerator.CurrentStep = $null
+
+        # process to end of internal events
+        $Enumerator.StateMachine | Invoke-RunAllQueued
+
+        if ( $Enumerator.StateMachine.CurrentState.StateName -eq 'Ended' )
+        {
+            return $false
+        }
+        return $true
+    }
+}
+
 function Get-CurrentConfigStep
 {
     [CmdletBinding()]
     [OutputType([ConfigStep])]
     param
     (
+        [Parameter(Position = 1)]
         [ConfigInstructionEnumerator]
         $InputObject
     )
@@ -176,7 +221,7 @@ function Get-CurrentConfigStep
 
         # extract the verb from the state name
         $verb = @{
-            PretestWaitForExternalTest = 'Test'
+            PretestWaitForTestExternal = 'Test'
             ConfigureWaitForTestExternal = 'Test'
             ConfigureWaitForSetExternal = 'Set'
             ConfigureProgressWaitForTestExternal = 'Test'
@@ -185,7 +230,7 @@ function Get-CurrentConfigStep
 
         # extract the phase from the state name
         $phase = @{
-            PretestWaitForExternalTest = 'Pretest'
+            PretestWaitForTestExternal = 'Pretest'
             ConfigureWaitForTestExternal = 'Configure'
             ConfigureWaitForSetExternal = 'Configure'
             ConfigureProgressWaitForTestExternal = 'Configure'
@@ -239,6 +284,9 @@ function Get-CurrentConfigStep
         $resource = $InputObject.NodeEnumerator.Value
         $outputObject.ActionArgs = Get-Variable 'resource','phase'
 
+        # keep a reference
+        $InputObject.CurrentStep = $outputObject
+
         return $outputObject
     }
 }
@@ -262,6 +310,9 @@ function Invoke-ConfigStep
 
         # invoke the action
         $rawResult = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
+
+        # mark the step as invoked
+        $ConfigStep.Invoked = $true
 
         # return the result object
         $splat = @{

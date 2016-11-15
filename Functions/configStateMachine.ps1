@@ -68,7 +68,7 @@ function New-ConfigStateMachine
 
             # Pretest Phase
             PretestDispatch
-            PretestWaitForExternalTest
+            PretestWaitForTestExternal
 
             # Configure Phase (No Progress)
             ConfigureDispatch
@@ -102,6 +102,7 @@ function New-ConfigStateMachine
             # Configure Phase (Progress)
             StartConfigureProgressResourceSet
             StartConfigureProgressResourceTest
+            EndConfigureProgressResource
             MoveConfigureProgressNextResource
             StartNewConfigurePass
 
@@ -115,9 +116,11 @@ function New-ConfigStateMachine
             AtNodeReady
             AtNodeNotReady
             AtNodeComplete
+            AtNodeSkipped
             SetComplete
             TestCompleteSuccess
             TestCompleteFailure
+            StepSkipped
         }
 
         $states = @(
@@ -132,7 +135,7 @@ function New-ConfigStateMachine
                 StateName = [State]::PretestDispatch
                 EntryActions = $TestNode
             }
-            @{ StateName = [State]::PretestWaitForExternalTest }
+            @{ StateName = [State]::PretestWaitForTestExternal }
 
             # Configure Phase (No Progress)
             @{ 
@@ -168,12 +171,12 @@ function New-ConfigStateMachine
                 TransitionName = [Transition]::StartResourcePretest
                 Triggers = [Event]::AtNodeReady,[Event]::AtNodeNotReady,[Event]::AtNodeComplete
                 SourceStateName = [State]::PretestDispatch
-                TargetStateName = [State]::PretestWaitForExternalTest
+                TargetStateName = [State]::PretestWaitForTestExternal
             }
             @{ 
                 TransitionName = [Transition]::EndResourcePretest
-                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure
-                SourceStateName = [State]::PretestWaitForExternalTest
+                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure,[Event]::StepSkipped
+                SourceStateName = [State]::PretestWaitForTestExternal
                 TargetStateName = [State]::PretestDispatch
                 TransitionActions = $MoveNext
             }
@@ -194,7 +197,7 @@ function New-ConfigStateMachine
             }
             @{ 
                 TransitionName = [Transition]::StartConfigureResourceTest
-                Triggers = [Event]::SetComplete
+                Triggers = [Event]::SetComplete,[Event]::StepSkipped
                 SourceStateName = [State]::ConfigureWaitForSetExternal
                 TargetStateName = [State]::ConfigureWaitForTestExternal
             }
@@ -206,13 +209,13 @@ function New-ConfigStateMachine
             }
             @{ 
                 TransitionName = [Transition]::EndConfigureResourceFailed
-                Triggers = [Event]::TestCompleteFailure
+                Triggers = [Event]::TestCompleteFailure,[Event]::StepSkipped
                 SourceStateName = [State]::ConfigureWaitForTestExternal
                 TargetStateName = [State]::ConfigureDispatch
             }
             @{
                 TransitionName = [Transition]::MoveConfigureNextResource
-                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady
+                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped
                 SourceStateName = [State]::ConfigureDispatch
                 TargetStateName = [State]::ConfigureDispatch
                 TransitionActions = $MoveNext
@@ -227,13 +230,19 @@ function New-ConfigStateMachine
             }
             @{ 
                 TransitionName = [Transition]::StartConfigureProgressResourceTest
-                Triggers = [Event]::SetComplete
+                Triggers = [Event]::SetComplete,[Event]::StepSkipped
                 SourceStateName = [State]::ConfigureProgressWaitForSetExternal
                 TargetStateName = [State]::ConfigureProgressWaitForTestExternal
             }
+            @{
+                TransitionName = [Transition]::EndConfigureProgressResource
+                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure,[Event]::StepSkipped
+                SourceStateName = [State]::ConfigureProgressWaitForTestExternal
+                TargetStateName = [State]::ConfigureProgressDispatch
+            }
             @{ 
                 TransitionName = [Transition]::MoveConfigureProgressNextResource
-                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady
+                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped
                 SourceStateName = [State]::ConfigureProgressDispatch
                 TargetStateName = [State]::ConfigureProgressDispatch
                 TransitionActions = $MoveNext

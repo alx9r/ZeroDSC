@@ -4,6 +4,7 @@ enum Progress
     Complete
     Pending
     Failed
+    Skipped
 }
 class ProgressNode {
     [Progress] $Progress = [Progress]::Pending

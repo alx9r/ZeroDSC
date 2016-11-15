@@ -36,6 +36,7 @@ class ConfigStep
     [Scriptblock] $Action
     [psvariable[]] $ActionArgs
     [StateMachine] $StateMachine
+    [bool] $Invoked
 
     [ConfigStepResult] Invoke ()
     {

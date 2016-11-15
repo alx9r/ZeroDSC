@@ -52,18 +52,24 @@ Describe '.MoveNext()' {
     It 'New-' {
         $h.e = $h.doc | New-ConfigInstructionEnumerator
     }
+    It 'simulate step always invoked' {
+        $h.InvokedCurrentStep = (Get-Module ZeroDsc).NewBoundScriptBlock({
+            New-Object ConfigStep -Property @{ Invoked = $true }
+        }).InvokeReturnAsIs()
+    }
     It '.MoveNext()' {
         $h.e.MoveNext() | Should be $true
     }
     It 'enumerator at node of first resource' {
         $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
     }
-    It 'state PretestWaitForExternalTest' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
+    It 'state PretestWaitForTestExternal' {
+        $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
     }
     It 'simulate Test- resource success' {
         $h.e.NodeEnumerator.Current.Value.Progress = 'Complete'
         $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
+        $h.e.CurrentStep = $h.InvokedCurrentStep
     }
     It '.MoveNext()' {
         $h.e.MoveNext() | Should be $true
@@ -71,11 +77,12 @@ Describe '.MoveNext()' {
     It 'enumerator at node of second resource' {
         $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
     }
-    It 'state PretestWaitForExternalTest' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
+    It 'state PretestWaitForTestExternal' {
+        $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
     }
     It 'simulate Test- resource failure' {
         $h.e.StateMachine.RaiseEvent('TestCompleteFailure')
+        $h.e.CurrentStep = $h.InvokedCurrentStep
     }
     It '.MoveNext()' {
         $h.e.MoveNext() | Should be $true
@@ -88,6 +95,7 @@ Describe '.MoveNext()' {
     }
     It 'simulate Set- resource completion' {
         $h.e.StateMachine.RaiseEvent('SetComplete')
+        $h.e.CurrentStep = $h.InvokedCurrentStep
     }
     It '.MoveNext()' {
         $h.e.MoveNext() | Should be $true
@@ -101,6 +109,7 @@ Describe '.MoveNext()' {
     It 'simulate Test- resource success' {
         $h.e.NodeEnumerator.Current.Value.Progress = 'Complete'
         $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
+        $h.e.CurrentStep = $h.InvokedCurrentStep
     }
     It '.MoveNext()' {
         $h.e.MoveNext() | Should be $false
@@ -110,6 +119,51 @@ Describe '.MoveNext()' {
     }
     It 'state Ended' {
         $h.e.StateMachine.CurrentState.StateName | Should be 'Ended'
+    }
+}
+
+Describe '.MoveNext() no step invokations' {
+    $h = @{}
+    It 'create test document' {
+        $h.doc = New-ConfigDocument Name {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        } |
+            ConvertTo-ConfigDocument
+    }
+    It 'New-' {
+        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    }
+    It '.MoveNext()' {
+        $h.e.MoveNext() | Should be $true
+    }
+    Context 'Pretest' {
+        It 'in correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
+        }
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $true
+        }
+        It 'progress changed to skipped' {
+            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'skipped'
+        }
+        It 'moved to correct state' {
+            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
+        }
+        It 'progress changed to skipped' {
+            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'skipped'
+        }
+    }
+    Context 'Ended' {
+        It '.MoveNext()' {
+            $h.e.MoveNext() | Should be $false
+        }
+        It 'moved to correct state' {
+            $h.e.StateMachine.CurrentState.StateName | Should be 'Ended'
+        }
     }
 }
 
@@ -130,6 +184,11 @@ Describe 'Get-CurrentConfigStep' {
         $r = Get-CurrentConfigStep -InputObject $h.e
         $r | Should beNullOrEmpty
     }
+    It 'simulate step always invoked' {
+        $h.InvokedCurrentStep = (Get-Module ZeroDsc).NewBoundScriptBlock({
+            New-Object ConfigStep -Property @{ Invoked = $true }
+        }).InvokeReturnAsIs()
+    }
     Context 'Pretest Test' {
         It '.MoveNext()' {
             $h.e.MoveNext() | Should be $true
@@ -138,12 +197,18 @@ Describe 'Get-CurrentConfigStep' {
             $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
         }
         It 'correct state' {
-            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForExternalTest'
+            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
+        }
+        It '.CurrentStep is empty' {
+            $h.e.CurrentStep | Should beNullOrEmpty
         }
         It 'returns exactly one ConfigStep object' {
             $h.PretestTest = Get-CurrentConfigStep -InputObject $h.e
             $h.PretestTest.Count | Should be 1
             $h.PretestTest.GetType() | Should be 'ConfigStep'
+        }
+        It 'a reference to the ConfigStep object is kept' {
+            $h.e.CurrentStep -eq $h.PreTestTest | Should be $true
         }
         It 'populates Message' {
             $h.PretestTest.Message | Should match 'Test resource \[StubResource5\]a'
@@ -166,8 +231,15 @@ Describe 'Get-CurrentConfigStep' {
     }
     Context 'Configure Set' {
         It '.MoveNext()' {
+            $h.e.CurrentStep = $h.InvokedCurrentStep
             $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
             $h.e.MoveNext() | Should be $true
+        }
+        It '.CurrentStep is empty' {
+            $h.e.CurrentStep | Should beNullOrEmpty
+        }
+        It '.MoveNext()' {
+            $h.e.CurrentStep = $h.InvokedCurrentStep
             $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
             $h.e.MoveNext() | Should be $true
         }
@@ -177,10 +249,16 @@ Describe 'Get-CurrentConfigStep' {
         It 'correct state' {
             $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
         }
+        It '.CurrentStep is empty' {
+            $h.e.CurrentStep | Should beNullOrEmpty
+        }
         It 'returns exactly one ConfigStep object' {
             $h.ConfigureSet = Get-CurrentConfigStep -InputObject $h.e
             $h.ConfigureSet.Count | Should be 1
             $h.ConfigureSet.GetType() | Should be 'ConfigStep'
+        }
+        It 'a reference to the ConfigStep object is kept' {
+            $h.e.CurrentStep -eq $h.ConfigureSet | Should be $true
         }
         It 'populates Message' {
             $h.ConfigureSet.Message | Should match 'Set resource \[StubResource5\]a'
@@ -194,6 +272,7 @@ Describe 'Get-CurrentConfigStep' {
     }
     Context 'Configure Test' {
         It '.MoveNext()' {
+            $h.e.CurrentStep = $h.InvokedCurrentStep
             $h.e.StateMachine.RaiseEvent('SetComplete')
             $h.e.MoveNext() | Should be $true
         }
@@ -251,6 +330,9 @@ Describe 'Invoke-ConfigStep' {
         It 'progress was initially pending' {
             $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
         }
+        It 'invoked was initially false' {
+            $h.e.CurrentStep.Invoked | Should be $false
+        }
         It 'Invoke' {
             $h.TestResult = $h.Step | Invoke-ConfigStep
         }
@@ -260,6 +342,9 @@ Describe 'Invoke-ConfigStep' {
         }
         It 'reports correct progress' {
             $h.e.NodeEnumerator.Value.Progress | Should be 'Complete'
+        }
+        It 'invoked was set to true' {
+            $h.e.CurrentStep.Invoked | Should be $true
         }
         It 'returns exactly one result object' {
             $h.TestResult.Count | Should be 1
@@ -292,6 +377,9 @@ Describe 'Invoke-ConfigStep' {
         It 'progress was initially pending' {
             $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
         }
+        It 'invoked was initially false' {
+            $h.e.CurrentStep.Invoked | Should be $false
+        }
         It 'Invoke' {
             $h.TestResult = $h.Step | Invoke-ConfigStep
         }
@@ -301,6 +389,9 @@ Describe 'Invoke-ConfigStep' {
         It 'correct event was raised' {
             $h.e.StateMachine.TriggerQueue.Count | Should be 1
             $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteFailure'
+        }
+        It 'invoked was set to true' {
+            $h.e.CurrentStep.Invoked | Should be $true
         }
         It 'populates message' {
             $h.TestResult.Message | Should match 'Test'
