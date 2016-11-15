@@ -129,7 +129,7 @@ function Invoke-RunNext
             # invoke the transition actions
             foreach ( $action in $transition.TransitionActions )
             {
-                $action.InvokeWithContext($functions,$StateMachine.ActionArgsl) | Out-Null
+                $action.InvokeWithContext($functions,$StateMachine.ActionArgs) | Out-Null
             }
 
             # extract the next state
