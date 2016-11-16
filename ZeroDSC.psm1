@@ -1,11 +1,17 @@
-﻿Import-Module PSDesiredStateConfiguration,ToolFoundations
+﻿Import-Module PSDesiredStateConfiguration
 
 $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
 
-# dot source the type files first
+# dot source the external dependencies...
+"$moduleRoot\External\*.ps1" |
+    Get-Item |
+    ? { $_.Name -notmatch 'Tests\.ps1$' } |
+    % { . $_.FullName }
+
+# ...then the type files...
 . "$moduleRoot\Functions\LoadTypes.ps1"
 
-# then the other files
+# ...and then the remaining .ps1 files
 "$moduleRoot\Functions\*.ps1" |
     Get-Item |
     ? {
