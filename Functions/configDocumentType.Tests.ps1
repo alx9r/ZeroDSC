@@ -224,4 +224,10 @@ Describe ConvertTo-ConfigDocument {
         It 'the exception shows the line number of the offending call' {}
         It 'the exception contains an informative message' {}
     }
+    Context 'DependsOn points to itself' {
+        It 'throws correct exception type' {}
+        It 'the exception shows the filename of the offending call' {}
+        It 'the exception shows the line number of the offending call' {}
+        It 'the exception contains an informative message' {}
+    }
 }

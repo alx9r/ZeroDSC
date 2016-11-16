@@ -30,17 +30,10 @@ function New-ConfigInstructions
     )
     process
     {
-        [ConfigInstructions]::new($ConfigDocument)
+        ,[ConfigInstructions]::new($ConfigDocument)
     }
 }
 #endregion
-
-class _ConfigInstructionEnumerator {
-    [object] get_Current () { return ''.GetEnumerator() }
-    [bool] MoveNext () { return $true }
-    Reset () {}
-    Dispose () {}
-}
 
 enum Event
 {
@@ -61,7 +54,7 @@ enum Event
     SetComplete
 }
 
-class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collections.Generic.IEnumerator[ConfigStep] {
+class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
     [System.Collections.Generic.Dictionary[string,ProgressNode]] 
     $Nodes
 
@@ -71,7 +64,7 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
 
     [ConfigStep] $CurrentStep
 
-    ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument )
+    _ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument )
     {
         $this.Nodes = $ConfigDocument.Resources | New-ProgressNodes
         $this.NodeEnumerator = $this.Nodes.GetEnumerator()
@@ -127,9 +120,14 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
         $this.StateMachine = New-ConfigStateMachine $testNode $moveNext $reset $variables
     }
 
-    [ConfigStep] get_Current ()
+    [object] _get_Current()
     {
         return Get-CurrentConfigStep -InputObject $this
+    }
+
+    [object] get_Current ()
+    {
+        return $this._get_Current()
     }
 
     [bool] MoveNext () 
@@ -142,6 +140,17 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
         $this.Nodes | Reset-ProgressNodes
         $this.NodeEnumerator = $this.Nodes.GetEnumerator()
         $this.StateMachine.Reset()
+    }
+    Dispose () {}
+}
+
+class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collections.Generic.IEnumerator[ConfigStep]
+{
+    ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument ) : base( $ConfigDocument ) {}
+
+    [ConfigStep] get_Current () 
+    {
+        return ([ConfigInstructionEnumerator]$this)._get_Current() 
     }
 }
 
