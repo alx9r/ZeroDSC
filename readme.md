@@ -1,3 +1,11 @@
+<table>
+  <tr>
+    <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/France_road_sign_A14.svg/273px-France_road_sign_A14.svg.png" alt="Warning"/></td>
+    <td><b>A mild note of caution:</b> The core features of ZeroDSC are implemented and working.  Please experiment with ZeroDSC and provide feedback by opening issues and pull requests <a href="https://github.com/alx9r/ZeroDSC">here</a>.  Please also note that it is still early days for this project and many of the features are still experimental and unpolished.  Expect breaking changes to ZeroDSC before it stabilizes including changes to the configuration document format, live configuration objects, and the behaviour of the configuration algorithm.
+    </td>
+  </tr>
+</table>
+
 # ZeroDSC
 
 ZeroDSC is a lightweight native PowerShell implementation of a DSC configuration engine.
@@ -16,29 +24,35 @@ The operation of the ZeroDSC configuration engine is deliberately transparent an
 
 ## Comparison
 
-| description                                                      | ZeroDSC            | LCM-invoked DSC    |
+|                                                                  | ZeroDSC            | LCM-invoked DSC    |
 | :---                                                             |  :---:             |   :---:            |
+| **Resources**                                                    |                    |                    |
 | works with class-based resources                                 | :white_check_mark: | :white_check_mark: |
 | works with MOF-based resources                                   | :white_check_mark: | :white_check_mark: |
-| works with binary resources (1)                                  |                    | :white_check_mark: |
+| works with binary resources<sup>[a](#binaryresources)</sup>      |                    | :white_check_mark: |
+| **Configuration Documents**                                      |                    |                    |
 | works with ZeroDSC configuration documents                       | :white_check_mark: |                    |
 | works with traditional PowerShell configuration documents        |                    | :white_check_mark: |
-| invokes resources without requiring privileged user              | :white_check_mark: |                    |
-| invokes resources as current user without certificates           | :white_check_mark: |                    |
-| handles reboots                                                  |                    | :white_check_mark: |
-| encrypts and saves credentials for future use                    |                    | :white_check_mark: |
-| credentials can be provided interactively                        | :white_check_mark: |                    |
+| **Privileges and Credentials**                                   |                    |                    |
+| invoke resources without requiring privileged user               | :white_check_mark: |                    |
+| invoke resources as current user without certificates            | :white_check_mark: |                    |
+| provide credentials interactively and immediately invoke resources as that user | :white_check_mark: |                    |
+| encrypt and save credentials for future use                      |                    | :white_check_mark: |
+| retains credentials after reboot                                 |                    | :white_check_mark: |
+| **Control and Transparency**                                     |                    |                    |
 | continually applies configurations                               |                    | :white_check_mark: |
+| automatcially continues configuration after reboots              |                    | :white_check_mark: |
 | fine-grained control of when and how configurations are applied  | :white_check_mark: |                    |
-| entire configuration process accessible in single debugger       | :white_check_mark: |                    |
-| user can interact with live configuration objects in console     | :white_check_mark: |                    |
-| configuration steps are implemented as `IEnumerable<ConfigStep>` | :white_check_mark: |                    | 
+| step through entire configuration process from single debugger   | :white_check_mark: |                    |
+| interact with live configuration objects in console              | :white_check_mark: |                    |
+| emits intuitive live configuration objects                       | :white_check_mark: |                    | 
+| **Testing and Integration**                                      |                    |                    |
 | seamless fine-grained invocation of configurations from Pester   | :white_check_mark: |                    |
-| streamlined integration with continuous integration systems (2)  | :white_check_mark: |                    |
+| streamlined integration with continuous integration systems<sup>[b](#CI)</sup>  | :white_check_mark: |                    |
 
-(1) ZeroDSC could be extended to support binary resources with minimal effort if needed.
+(<a name="binaryresources">a</a>) *ZeroDSC could be extended to support binary resources with minimal effort if needed.*
 
-(2) When ZeroDSC configurations are invoked using Pester, configuration results can be output in the NUnitXml format or any other format supported by Pester.
+(<a name="CI">b</a>) *When ZeroDSC configurations are invoked using Pester, configuration results can be output in the NUnitXml format or any other format supported by Pester.*
 
 ## Prerequisites
 
@@ -77,3 +91,7 @@ The operation of the ZeroDSC configuration engine is deliberately transparent an
 :white_large_square: invokation of other DSC resources over PowerShell remoting
 
 :white_large_square: install of ZeroDSC and DSC resources over PowerShell remoting 
+
+### Note
+
+<a name="myfootnote1">1</a>: The warning symbol is the work of Roulex_45 and is used under license by way of  https://en.wikipedia.org/wiki/File:France_road_sign_A14.svg.
