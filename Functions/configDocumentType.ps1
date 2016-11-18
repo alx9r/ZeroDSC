@@ -33,6 +33,41 @@ class ConfigDocument
     $Resources = [System.Collections.Generic.Dictionary[System.String,BoundResourceBase]]::new()
 }
 
+function New-ConfigDocument 
+{
+    [CmdletBinding()]
+    param
+    (
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Name,
+
+        [scriptblock]
+        $ScriptBlock
+    )
+    process 
+    {
+        $items = & (Get-Module ZeroDsc).NewBoundScriptBlock($ScriptBlock)
+        $ConfigDocument = [RawConfigDocument]::new($Name)
+        foreach ( $item in $items )
+        {
+            if 
+            (
+                $item -isnot [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] -and
+                $item -isnot [RawResourceConfigInfo]
+            )
+            {
+                throw [System.ArgumentException]::new(
+                    "Invalid object type $($item.GetType().ToString()) emitted by Scriptblock.",
+                    'Scriptblock'
+                )
+            }
+
+            $ConfigDocument.Add($item)
+        }
+        return $ConfigDocument
+    }
+}
 
 function ConvertTo-ConfigDocument
 {

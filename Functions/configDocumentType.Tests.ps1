@@ -82,6 +82,74 @@ Describe RawConfigDocument {
     }
 }
 
+Describe New-ConfigDocument {
+    It 'returns exactly one object of correct type' {
+        $r = New-ConfigDocument ConfigName {}
+        $r.Count | Should be 1
+        $r.GetType() | Should be 'RawConfigDocument'
+    }
+    It 'correctly populates name' {
+        $r = New-ConfigDocument ConfigName {}
+        $r.Name | Should be 'ConfigName'
+    }
+    It 'correctly adds an object' {
+        $r = New-ConfigDocument ConfigName { Get-DscResource StubResource1A }
+        $r.DscResources.Count | Should be 1
+        $r.DscResources[0].Name | Should be 'StubResource1AFriendlyName'
+    }
+    Context 'emits invalid object type' {
+        It 'throws correct exception type' {
+            { 
+                New-ConfigDocument ConfigName { @{} } 
+            } |
+                Should throw 'Invalid object type System.Collections.Hashtable'
+        }
+        It 'the exception shows the filename of the offending call' {}
+        It 'the exception shows the line number of the offending call' {}
+        It 'the exception contains an informative message' {}
+    }
+}
+
+Describe 'Configuration sample' {
+    It 'returns a ConfigDocument object' {
+        $records.Sample1Result = New-ConfigDocument ConfigName {
+            Get-DscResource StubResource2A | Import-DscResource
+            StubResource2A ResourceName @{
+                StringParam1 = 's1'
+                BoolParam = $true
+            }
+            Aggregate AggregateName @{
+                StringParam1 = 's1'
+                BoolParam = $true
+            }
+        }
+        $records.Sample1Result |
+            Should not beNullOrEmpty
+    }
+    It 'has the correct name' {
+        $records.Sample1Result.Name |
+            Should be 'ConfigName'
+    }
+    It 'has the correct DSC Resource' {
+        $records.Sample1Result.DscResources[0].Name |
+            Should be 'StubResource2A'
+    }
+    It 'has the correct resource in ResourceConfigs' {
+        $r = $records.Sample1Result.ResourceConfigs[0]
+        $r.Params.StringParam1 | Should be 's1'
+        $r.Params.BoolParam | Should be $true
+        $r.InvocationInfo.PositionMessage | Should match $($PSCommandPath | Split-Path -Leaf)
+        $r.ConfigName | Should be ResourceName
+    }
+    It 'has the correct aggregate in ResourceConfigs' {
+        $r = $records.Sample1Result.ResourceConfigs[1]
+        $r.Params.StringParam1 | Should be 's1'
+        $r.Params.BoolParam | Should be $true
+        $r.InvocationInfo.PositionMessage | Should match $($PSCommandPath | Split-Path -Leaf)
+        $r.ConfigName | Should be AggregateName
+    }
+}
+
 Describe ConvertTo-ConfigDocument {
     It 'creates exactly one new object' {
         $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
