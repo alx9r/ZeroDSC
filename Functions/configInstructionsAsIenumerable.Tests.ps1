@@ -45,10 +45,11 @@ Describe 'ConfigInstructions as iEnumerable' {
         $i = 0
         foreach ( $step in $h.Instructions )
         {
-            It $step.Message {
-                $r = $step.Invoke()
-                $r.Code | Should be 'Success'
+            $h = @{}
+            It "invoke $($step.Message)" {
+                $h.r = $step.Invoke()
             }
+            It "result is successful" {}
             $i++
         }
         $i | Should be 6
