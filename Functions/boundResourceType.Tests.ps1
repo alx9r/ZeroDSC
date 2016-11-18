@@ -48,8 +48,7 @@ Describe 'ConvertTo-BoundResource' {
         $r = ConvertTo-BoundResource @resSplat
         $r.GetType() | Should be 'BoundResource'
     }
-    It '...except when ConfigDocument is type AggregateConfigInfo' {
-
+    It '...except when Config is type AggregateConfigInfo' {
         $r = ConvertTo-BoundResource @aggSplat
         $r.GetType() | Should be 'BoundAggregate'
     }
