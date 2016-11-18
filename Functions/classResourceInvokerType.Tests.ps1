@@ -32,6 +32,18 @@ Describe 'Test Environment' {
     }
 }
 
+Describe New-ClassResourceObject {
+    foreach ( $resourceName in $stubClassResourceNames )
+    {
+        $record = $records.$resourceName
+        It "returns correct resource object for $resourceName" {
+            $r = $record.DscResource | New-ClassResourceObject
+            $r.Count | Should be 1
+            $r.GetType().Name | Should be $resourceName
+        }
+    }
+}
+
 Describe Test-ClassResourceType {
     foreach ( $resourceName in $stubClassResourceNames )
     {
@@ -51,18 +63,6 @@ Describe Test-ClassResourceType {
             $r.Count | Should be 1
             $r | Should beOfType bool
             $r | Should be $false
-        }
-    }
-}
-
-Describe New-ClassResourceObject {
-    foreach ( $resourceName in $stubClassResourceNames )
-    {
-        $record = $records.$resourceName
-        It "returns correct resource object for $resourceName" {
-            $r = $record.DscResource | New-ClassResourceObject
-            $r.Count | Should be 1
-            $r.GetType().Name | Should be $resourceName
         }
     }
 }

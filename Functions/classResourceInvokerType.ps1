@@ -69,10 +69,9 @@ function New-ClassResourceObject
             $module | Import-Module
             try
             {
-                $object = iex @"
-                    using module $($module.Path)
-                    [$($DscResource.Name)]::new()
-"@
+                $object = (Get-Module $module.Name).NewBoundScriptBlock(
+                    [scriptblock]::Create("[$($DscResource.Name)]::new()")
+                ).InvokeReturnAsIs()
             }
             catch [System.Management.Automation.RuntimeException]
             {
