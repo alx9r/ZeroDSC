@@ -10,7 +10,7 @@ $records = @{}
 Describe Test-DependenciesMet {
     Context 'resource nodes' {
         It 'create test dictionary' {
-            $records.Nodes = New-ConfigDocument Name {
+            $records.Nodes = New-RawConfigDocument Name {
                 Get-DscResource StubResource5 | Import-DscResource
                 StubResource5 'a' @{ Mode = 'Normal' }
                 StubResource5 'b' @{ 

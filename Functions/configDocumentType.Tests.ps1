@@ -82,25 +82,25 @@ Describe RawConfigDocument {
     }
 }
 
-Describe New-ConfigDocument {
+Describe New-RawConfigDocument {
     It 'returns exactly one object of correct type' {
-        $r = New-ConfigDocument ConfigName {}
+        $r = New-RawConfigDocument ConfigName {}
         $r.Count | Should be 1
         $r.GetType() | Should be 'RawConfigDocument'
     }
     It 'correctly populates name' {
-        $r = New-ConfigDocument ConfigName {}
+        $r = New-RawConfigDocument ConfigName {}
         $r.Name | Should be 'ConfigName'
     }
     It 'correctly adds an object' {
-        $r = New-ConfigDocument ConfigName { Get-DscResource StubResource1A }
+        $r = New-RawConfigDocument ConfigName { Get-DscResource StubResource1A }
         $r.DscResources.Count | Should be 1
         $r.DscResources[0].Name | Should be 'StubResource1AFriendlyName'
     }
     Context 'emits invalid object type' {
         It 'throws correct exception type' {
             { 
-                New-ConfigDocument ConfigName { @{} } 
+                New-RawConfigDocument ConfigName { @{} } 
             } |
                 Should throw 'Invalid object type System.Collections.Hashtable'
         }
@@ -112,7 +112,7 @@ Describe New-ConfigDocument {
 
 Describe 'Configuration sample' {
     It 'returns a ConfigDocument object' {
-        $records.Sample1Result = New-ConfigDocument ConfigName {
+        $records.Sample1Result = New-RawConfigDocument ConfigName {
             Get-DscResource StubResource2A | Import-DscResource
             StubResource2A ResourceName @{
                 StringParam1 = 's1'
@@ -152,20 +152,20 @@ Describe 'Configuration sample' {
 
 Describe ConvertTo-ConfigDocument {
     It 'creates exactly one new object' {
-        $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
+        $r = New-RawConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
         $r.Count | Should be 1
     }
     It 'the object type is ConfigDocument' {
-        $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
+        $r = New-RawConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
         $r.GetType() | Should be 'ConfigDocument'
     }
     It 'correctly populates Name' {
-        $r = New-ConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
+        $r = New-RawConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
         $r.Name | Should be 'DocumentName'
     }
     InModuleScope ZeroDsc {
         Context 'convert config info and bind to resources' {
-            $raw = New-ConfigDocument 'DocumentName' {
+            $raw = New-RawConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 Get-DscResource StubResource2B | Import-DscResource
                 StubResource2A ConfigName2A @{}
@@ -205,7 +205,7 @@ Describe ConvertTo-ConfigDocument {
         $h = @{}
         It 'throws correct exception type' {
             $h.CallSite = & {$MyInvocation}            
-            $raw = New-ConfigDocument 'DocumentName' {
+            $raw = New-RawConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 StubResource2A ConfigName2A @{}
                 StubResource2A ConfigName2A @{}
@@ -234,7 +234,7 @@ Describe ConvertTo-ConfigDocument {
         $h = @{}
         It 'throws correct exception type' {
             $h.CallSite = & {$MyInvocation}            
-            $raw = New-ConfigDocument 'DocumentName' {
+            $raw = New-RawConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 Get-DscResource StubResource2A | Import-DscResource
                 StubResource2A ConfigName2A @{}
@@ -261,7 +261,7 @@ Describe ConvertTo-ConfigDocument {
             Mock ConvertTo-BoundResource { throw 'mock resource binding exception message' }
             It 'throws correct exception type' {
                 $h.CallSite = & {$MyInvocation}            
-                $raw = New-ConfigDocument 'DocumentName' {
+                $raw = New-RawConfigDocument 'DocumentName' {
                     Set-Alias ResourceName New-RawResourceConfigInfo
                     ResourceName ResourceConfigName @{}
                 }

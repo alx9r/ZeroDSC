@@ -33,7 +33,7 @@ class ConfigDocument
     $Resources = [System.Collections.Generic.Dictionary[System.String,BoundResourceBase]]::new()
 }
 
-function New-ConfigDocument 
+function New-RawConfigDocument 
 {
     [CmdletBinding()]
     param

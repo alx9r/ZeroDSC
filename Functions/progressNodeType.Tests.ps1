@@ -9,7 +9,7 @@ Describe 'Test Environment' {
 Describe New-ProgressNodes {
     $h = @{}
     It 'create test document' {
-        $h.ConfigDocument = New-ConfigDocument Name {
+        $h.ConfigDocument = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }

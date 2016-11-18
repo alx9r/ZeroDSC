@@ -9,7 +9,7 @@ Describe 'Test Environment' {
 Describe 'New-ConfigInstructionEnumerator' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -42,7 +42,7 @@ Describe 'New-ConfigInstructionEnumerator' {
 Describe '.MoveNext()' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -125,7 +125,7 @@ Describe '.MoveNext()' {
 Describe '.MoveNext() no step invokations' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -170,7 +170,7 @@ Describe '.MoveNext() no step invokations' {
 Describe '.MoveNext() skip configure set invokation (no progress)' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -216,7 +216,7 @@ Describe '.MoveNext() skip configure set invokation (no progress)' {
 Describe '.MoveNext() skip configure set invokation (progress)' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -268,7 +268,7 @@ Describe '.MoveNext() skip configure set invokation (progress)' {
 Describe '.MoveNext() skip configure test invokation (no progress)' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -316,7 +316,7 @@ Describe '.MoveNext() skip configure test invokation (no progress)' {
 Describe '.MoveNext() skip configure test invokation (progress)' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -373,7 +373,7 @@ Describe '.MoveNext() skip configure test invokation (progress)' {
 Describe 'Get-CurrentConfigStep' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
             StubResource5 'b' @{ Mode = 'Normal' }
@@ -506,7 +506,7 @@ Describe 'Invoke-ConfigStep' {
     $h = @{}
     Context 'arrange' {
         It 'create test document' {
-            $h.doc = New-ConfigDocument Name {
+            $h.doc = New-RawConfigDocument Name {
                 Get-DscResource StubResource5 | Import-DscResource
                 StubResource5 'a' @{ Mode = 'already set' }
                 StubResource5 'b' @{ Mode = 'normal' }

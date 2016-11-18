@@ -9,7 +9,7 @@ Describe 'Test Environment' {
 Describe 'ConfigInstructions as iEnumerable' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-ConfigDocument Name {
+        $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
             StubResource5 'b' @{ Mode = 'Normal' }
