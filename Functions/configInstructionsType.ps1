@@ -1,4 +1,3 @@
-#region IEnumerable
 class _ConfigInstructions : System.Collections.IEnumerable {
     [System.Collections.IEnumerator] GetEnumerator () {
         return [_ConfigInstructionEnumerator]::new()
@@ -33,7 +32,6 @@ function New-ConfigInstructions
         ,[ConfigInstructions]::new($ConfigDocument)
     }
 }
-#endregion
 
 enum Event
 {
@@ -45,6 +43,7 @@ enum Event
     AtNodeNotReady
     AtNodeComplete
     AtNodeSkipped
+    AtNodeFailed
 
     # Test Resource
     TestCompleteSuccess
@@ -96,6 +95,12 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
             if ( [Progress]::Skipped -eq $this.NodeEnumerator.Value.Progress )
             {
                 RaiseEvent( [Event]::AtNodeSkipped )
+                return
+            }
+
+            if ( [Progress]::Failed -eq $this.NodeEnumerator.Value.Progress )
+            {
+                RaiseEvent( [Event]::AtNodeFailed )
                 return
             }
 
@@ -318,17 +323,16 @@ function Invoke-ConfigStep
         }
 
         # invoke the action
-        $rawResult = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
+        $result = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
 
         # mark the step as invoked
         $ConfigStep.Invoked = $true
 
         # return the result object
-        $splat = @{
+        return New-Object ConfigStepResult -Property @{
             Message = $ConfigStep.Message + ' Complete'
             Step = $ConfigStep
-            Raw = $rawResult
+            Result = $result
         }
-        return New-ConfigStepResult @splat
     }
 }

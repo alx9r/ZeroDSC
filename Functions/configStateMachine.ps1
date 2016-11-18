@@ -118,6 +118,7 @@ function New-ConfigStateMachine
             AtNodeReady
             AtNodeNotReady
             AtNodeComplete
+            AtNodeFailed
             AtNodeSkipped
             SetComplete
             TestCompleteSuccess
@@ -223,7 +224,7 @@ function New-ConfigStateMachine
             }
             @{
                 TransitionName = [Transition]::MoveConfigureNextResource
-                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped
+                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped,[Event]::AtNodeFailed
                 SourceStateName = [State]::ConfigureDispatch
                 TargetStateName = [State]::ConfigureDispatch
                 TransitionActions = $MoveNext
@@ -256,7 +257,7 @@ function New-ConfigStateMachine
             }
             @{ 
                 TransitionName = [Transition]::MoveConfigureProgressNextResource
-                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped
+                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped,[Event]::AtNodeFailed
                 SourceStateName = [State]::ConfigureProgressDispatch
                 TargetStateName = [State]::ConfigureProgressDispatch
                 TransitionActions = $MoveNext

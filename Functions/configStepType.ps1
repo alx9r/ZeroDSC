@@ -5,14 +5,6 @@ enum ConfigPhase
     Configure
 }
 
-enum ConfigStepResultCode
-{
-    Undefined
-    Success
-    Failure
-    Complete
-}
-
 enum ConfigStepVerb
 {
     Get
@@ -22,9 +14,8 @@ enum ConfigStepVerb
 
 class ConfigStepResult
 {
-    $Raw
+    $Result
     [string] $Message
-    [ConfigStepResultCode] $Code
     [ConfigStep] $Step
 }
 
@@ -41,37 +32,5 @@ class ConfigStep
     [ConfigStepResult] Invoke ()
     {
         return $this | Invoke-ConfigStep
-    }
-}
-
-function New-ConfigStepResult
-{
-    [CmdletBinding()]
-    [OutputType([ConfigStepResult])]
-    param
-    (
-        [string]
-        $Message,
-
-        [ConfigStep]
-        $Step,
-
-        $Raw
-    )
-    process
-    {
-        switch ( $Raw )
-        {
-            $true   { $code = [ConfigStepResultCode]::Success }
-            $false  { $code = [ConfigStepResultCode]::Failure }
-            $null   { $code = [ConfigStepResultCode]::Complete }
-            default { $code = [ConfigStepResultCode]::Undefined }
-        }
-        New-Object ConfigStepResult -Property @{
-            Raw = $Raw
-            Code = $code
-            Message = $Message
-            Step = $Step
-        }
     }
 }

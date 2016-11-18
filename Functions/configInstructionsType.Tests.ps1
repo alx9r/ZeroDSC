@@ -39,334 +39,162 @@ Describe 'New-ConfigInstructionEnumerator' {
     }
 }
 
-Describe '.MoveNext()' {
-    $h = @{}
-    It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
+$tests = [ordered]@{
+    Basic = @{
+        ConfigDocument = {
             Get-DscResource StubResource5 | Import-DscResource
-            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
             StubResource5 'b' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
+        }
+        Values = @(
+            # NodeKey           | StateName                    | Node Progress | Raise Event
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Complete',      'TestCompleteSuccess' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', $null,           'SetComplete' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal','Complete',      'TestCompleteSuccess'),
+            @($null,            ,'Ended' )
+        )
     }
-    It 'New-' {
-        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    'Progress causes results in second pass' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', $null,           'SetComplete' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal','Complete',      'TestCompleteSuccess'),
+            @('[StubResource5]a','ConfigureWaitForSetExternal', $null,           'SetComplete' ),
+            @('[StubResource5]a','ConfigureWaitForTestExternal','Complete',      'TestCompleteSuccess'),
+            @($null,            ,'Ended' )
+        )
     }
-    It 'simulate step always invoked' {
-        $h.InvokedCurrentStep = (Get-Module ZeroDsc).NewBoundScriptBlock({
-            New-Object ConfigStep -Property @{ Invoked = $true }
-        }).InvokeReturnAsIs()
+    'Progress ending with incorrigible' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'already set' }
+            StubResource5 'b' @{ Mode = 'normal' }
+            StubResource5 'c' @{ Mode = 'incorrigible' }
+        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',          'Complete',    'TestCompleteSuccess'),
+            @('[StubResource5]b','PretestWaitForTestExternal',          'Pending',     'TestCompleteFailure'),
+            @('[StubResource5]c','PretestWaitForTestExternal',          'Pending',     'TestCompleteFailure'),
+            @('[StubResource5]b','ConfigureWaitForSetExternal',         'Pending',     'SetComplete'),
+            @('[StubResource5]b','ConfigureWaitForTestExternal',        'Complete',    'TestCompleteSuccess'),
+            @('[StubResource5]c','ConfigureProgressWaitForSetExternal', 'Pending',     'SetComplete'),
+            @('[StubResource5]c','ConfigureProgressWaitForTestExternal','Failed',      'TestCompleteFailure'),
+            @($null,            ,'Ended')
+        )
     }
-    It '.MoveNext()' {
-        $h.e.MoveNext() | Should be $true
+    'Skip All' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Skipped',       'StepSkipped' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  'Skipped',       'StepSkipped' ),
+            @($null,            ,'Ended' )
+        )
     }
-    It 'enumerator at node of first resource' {
-        $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
+    'Skip a Pretest' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Skipped',       'StepSkipped' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', $null,           'SetComplete' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal','Complete',      'TestCompleteSuccess'),
+            @($null,            ,'Ended' )
+        )
     }
-    It 'state PretestWaitForTestExternal' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
+    'Skip a Configure Set' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Complete',      'TestCompleteSuccess' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', 'Skipped',       'StepSkipped' ),
+            @($null,            ,'Ended' )
+        )
     }
-    It 'simulate Test- resource success' {
-        $h.e.NodeEnumerator.Current.Value.Progress = 'Complete'
-        $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
-        $h.e.CurrentStep = $h.InvokedCurrentStep
-    }
-    It '.MoveNext()' {
-        $h.e.MoveNext() | Should be $true
-    }
-    It 'enumerator at node of second resource' {
-        $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
-    }
-    It 'state PretestWaitForTestExternal' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
-    }
-    It 'simulate Test- resource failure' {
-        $h.e.StateMachine.RaiseEvent('TestCompleteFailure')
-        $h.e.CurrentStep = $h.InvokedCurrentStep
-    }
-    It '.MoveNext()' {
-        $h.e.MoveNext() | Should be $true
-    }
-    It 'enumerator at node of second resource' {
-        $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
-    }
-    It 'state ConfigureWaitForSetExternal' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-    }
-    It 'simulate Set- resource completion' {
-        $h.e.StateMachine.RaiseEvent('SetComplete')
-        $h.e.CurrentStep = $h.InvokedCurrentStep
-    }
-    It '.MoveNext()' {
-        $h.e.MoveNext() | Should be $true
-    }
-    It 'enumerator at node of second resource' {
-        $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
-    }
-    It 'state ConfigureWaitForTestExternal' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForTestExternal'
-    }
-    It 'simulate Test- resource success' {
-        $h.e.NodeEnumerator.Current.Value.Progress = 'Complete'
-        $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
-        $h.e.CurrentStep = $h.InvokedCurrentStep
-    }
-    It '.MoveNext()' {
-        $h.e.MoveNext() | Should be $false
-    }
-    It 'enumerator at end of collection' {
-        $h.e.NodeEnumerator.Current.Key | Should beNullOrEmpty
-    }
-    It 'state Ended' {
-        $h.e.StateMachine.CurrentState.StateName | Should be 'Ended'
+    'Skip a Configure Test' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Complete',      'TestCompleteSuccess' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', $null,           'SetComplete' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal','Skipped',       'StepSkipped'),
+            @($null,            ,'Ended' )
+        )
     }
 }
-
-Describe '.MoveNext() no step invokations' {
-    $h = @{}
-    It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
-            Get-DscResource StubResource5 | Import-DscResource
-            StubResource5 'a' @{ Mode = 'Normal' }
-            StubResource5 'b' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
-    }
-    It 'New-' {
-        $h.e = $h.doc | New-ConfigInstructionEnumerator
-    }
-    It '.MoveNext()' {
-        $h.e.MoveNext() | Should be $true
-    }
-    Context 'Pretest' {
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
+foreach ( $testName in $tests.Keys )
+{
+    Describe "ConfigInstructionEnumerator.MoveNext() using simulated ConfigStep ($testName)" {
+        $h = @{}
+        It 'create test document' {
+            $h.doc = New-RawConfigDocument Name $tests.$testName.ConfigDocument |
+                ConvertTo-ConfigDocument
         }
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+        It 'New-' {
+            $h.e = $h.doc | New-ConfigInstructionEnumerator
         }
-        It 'progress changed to skipped' {
-            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'skipped'
+        It 'simulate step always invoked' {
+            $h.InvokedCurrentStep = (Get-Module ZeroDsc).NewBoundScriptBlock({
+                New-Object ConfigStep -Property @{ Invoked = $true }
+            }).InvokeReturnAsIs()
         }
-        It 'moved to correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
+        $i = 0
+        foreach
+        ( 
+            $value in $tests.$testName.Values
+        )
+        {
+            $nodeKey,$stateName,$nodeProgress,$raiseEvent = $value
+            Context "Step $i" {
+                $moveNextResult = [bool]($stateName -ne 'Ended')
+                It ".MoveNext() returns $moveNextResult" {
+                    $h.e.MoveNext() | Should be $moveNextResult
+                }
+                It "enumerator at node $nodeKey" {
+                    $h.e.NodeEnumerator.Key | Should be $nodeKey
+                }
+                It "state machine in state $stateName" {
+                    $h.e.StateMachine.CurrentState.StateName | Should be $stateName
+                }
+                if ( $nodeProgress )
+                {
+                    It "simulate node progressing to $nodeProgress" {
+                        $h.e.NodeEnumerator.Current.Value.Progress = $nodeProgress
+                    }
+                }
+                if ( $raiseEvent )
+                {
+                    It "simulate raising event $raiseEvent" {
+                        $h.e.StateMachine.RaiseEvent($raiseEvent)
+                    }
+                }
+                It 'simulate CurrentStep being tagged as invoked' {
+                    $h.e.CurrentStep = $h.InvokedCurrentStep
+                }
+            }
+            $i ++
         }
-        It 'progress changed to skipped' {
-            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'skipped'
-        }
-    }
-    Context 'Ended' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $false
-        }
-        It 'moved to correct state' {
-            $h.e.StateMachine.CurrentState.StateName | Should be 'Ended'
-        }
-    }
-}
-
-Describe '.MoveNext() skip configure set invokation (no progress)' {
-    $h = @{}
-    It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
-            Get-DscResource StubResource5 | Import-DscResource
-            StubResource5 'a' @{ Mode = 'Normal' }
-            StubResource5 'b' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
-    }
-    It 'New-' {
-        $h.e = $h.doc | New-ConfigInstructionEnumerator
-    }
-    Context 'Pretest' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'skipping invokation of Configure Set...' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-        }
-    }
-    Context '...skips invokation Configure Test' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-        }
-        It 'node marked skipped' {
-            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'Skipped'
-        }
-    }
-    Context 'Set and Test of remaining node unaffected' {
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'End' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
-    }
-}
-
-Describe '.MoveNext() skip configure set invokation (progress)' {
-    $h = @{}
-    It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
-            Get-DscResource StubResource5 | Import-DscResource
-            StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
-            StubResource5 'b' @{ Mode = 'Normal' }
-            StubResource5 'c' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
-    }
-    It 'New-' {
-        $h.e = $h.doc | New-ConfigInstructionEnumerator
-    }
-    Context 'Pretest' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'Set/Test (no progress)' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'skipping invokation of Configure Set (progress)...' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]c'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureProgressWaitForSetExternal'
-        }
-    }
-    Context '...skips invokation Configure Test' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-        }
-    }
-    Context 'Set and Test of remaining node unaffected' {
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'End' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
-    }
-}
-
-Describe '.MoveNext() skip configure test invokation (no progress)' {
-    $h = @{}
-    It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
-            Get-DscResource StubResource5 | Import-DscResource
-            StubResource5 'a' @{ Mode = 'Normal' }
-            StubResource5 'b' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
-    }
-    It 'New-' {
-        $h.e = $h.doc | New-ConfigInstructionEnumerator
-    }
-    Context 'Pretest' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'skipping invokation of Configure Test (progress)...' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForTestExternal'
-        }
-    }
-    Context '...marks node as skipped.' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'node marked as skipped' {
-            $h.e.Nodes.'[StubResource5]a'.Progress | Should be 'skipped'
-        }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]b'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-        }
-    }
-    Context 'Set and Test of remaining node unaffected' {
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'End' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
-    }
-}
-
-Describe '.MoveNext() skip configure test invokation (progress)' {
-    $h = @{}
-    It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
-            Get-DscResource StubResource5 | Import-DscResource
-            StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
-            StubResource5 'b' @{ Mode = 'Normal' }
-            StubResource5 'c' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
-    }
-    It 'New-' {
-        $h.e = $h.doc | New-ConfigInstructionEnumerator
-    }
-    Context 'Pretest' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'Set/Test (no progress)' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'skipping invokation of Configure Test (progress)...' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]c'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureProgressWaitForTestExternal'
-        }
-    }
-    Context '...marks node as skipped.' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It 'node marked as skipped' {
-            $h.e.Nodes.'[StubResource5]c'.Progress | Should be 'skipped'
-        }
-        It 'in correct state' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-        }
-    }
-    Context 'Set and Test of remaining node unaffected' {
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $true }
-        It '.Invoke()' { $h.e.Current.Invoke() | Should not beNullOrEmpty }
-    }
-    Context 'End' {
-        It '.MoveNext()' { $h.e.MoveNext() | Should be $false }
     }
 }
 
@@ -376,7 +204,6 @@ Describe 'Get-CurrentConfigStep' {
         $h.doc = New-RawConfigDocument Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' }
-            StubResource5 'b' @{ Mode = 'Normal' }
         } |
             ConvertTo-ConfigDocument
     }
@@ -392,115 +219,77 @@ Describe 'Get-CurrentConfigStep' {
             New-Object ConfigStep -Property @{ Invoked = $true }
         }).InvokeReturnAsIs()
     }
-    Context 'Pretest Test' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+    $i = 0
+    foreach ( $value in @(
+            # nodeKey           | StateName                      | Event Name         | Progress  | Verb  | Phase     | Message
+            @('[StubResource5]a','PretestWaitForTestExternal',   'TestCompleteFailure', $null,      'Test', 'PreTest',  'Test resource \[StubResource5\]a'),
+            @('[StubResource5]a','ConfigureWaitForSetExternal',  'SetComplete',         $null,      'Set',  'Configure','Set resource \[StubResource5\]a'),
+            @('[StubResource5]a','ConfigureWaitForTestExternal', 'TestCompleteSuccess', 'Complete', 'Test', 'Configure','Test resource \[StubResource5\]a'),
+            @($null             ,'Ended' )
+        )
+    )
+    {
+        $nodeKey,$stateName,$eventName,$progress,$verb,$phase,$message = $value
+        Context "Step $i" {
+            $moveNextResult = [bool]($stateName -ne 'Ended')
+            It ".MoveNext() returns $moveNextResult" {
+                $h.e.MoveNext() | Should be $moveNextResult
+            }
+            It "enumerator at node $nodeKey" {
+                $h.e.NodeEnumerator.Key | Should be $nodeKey
+            }
+            It "state machine in state $stateName" {
+                $h.e.StateMachine.CurrentState.StateName | Should be $stateName
+            }
+            if ( $stateName -ne 'Ended' )
+            {
+                It 'returns exactly one ConfigStep object' {
+                    $h.Step = Get-CurrentConfigStep -InputObject $h.e
+                    $h.Step.Count | Should be 1
+                    $h.Step.GetType() | Should be 'ConfigStep'
+                }
+                It 'a reference to the ConfigStep object is kept' {
+                    $h.e.CurrentStep -eq $h.Step | Should be $true
+                }
+                It 'populates Message' {
+                    $h.Step.Message | Should match $message
+                }
+                It 'populates verb' {
+                    $h.Step.Verb | Should be $verb
+                }
+                It 'populates phase' {
+                    $h.Step.Phase | Should match $phase
+                }
+                It 'populates action' {
+                    $h.Step.Action | Should not beNullOrEmpty
+                }
+                It 'populates action args' {
+                    $h.Step.ActionArgs | Should not beNullOrEmpty
+                }
+                It 'includes a reference to the state machine' {
+                    $h.Step.StateMachine.GetType() | Should be 'StateMachine'
+                }
+                It 'simulate invokation of current step' {
+                    $h.e.CurrentStep = $h.InvokedCurrentStep
+                    if ( $progress )
+                    {
+                        $h.e.NodeEnumerator.Value.Progress = $progress
+                    }
+                    $h.e.StateMachine.RaiseEvent($eventName)
+                }
+            }
+            else
+            {
+                It 'it returns nothing' {
+                    $h.Step = Get-CurrentConfigStep -InputObject $h.e
+                    $h.Step | Should beNullOrEmpty
+                }
+            }
         }
-        It 'enumerator at node of first resource' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-        }
-        It 'correct state' {
-            $h.e.StateMachine.CurrentState.StateName | Should be 'PretestWaitForTestExternal'
-        }
-        It '.CurrentStep is empty' {
-            $h.e.CurrentStep | Should beNullOrEmpty
-        }
-        It 'returns exactly one ConfigStep object' {
-            $h.PretestTest = Get-CurrentConfigStep -InputObject $h.e
-            $h.PretestTest.Count | Should be 1
-            $h.PretestTest.GetType() | Should be 'ConfigStep'
-        }
-        It 'a reference to the ConfigStep object is kept' {
-            $h.e.CurrentStep -eq $h.PreTestTest | Should be $true
-        }
-        It 'populates Message' {
-            $h.PretestTest.Message | Should match 'Test resource \[StubResource5\]a'
-        }
-        It 'populates verb' {
-            $h.PretestTest.Verb | Should be 'Test'
-        }
-        It 'populates phase' {
-            $h.PretestTest.Phase | Should match 'Pretest'
-        }
-        It 'populates action' {
-            $h.PretestTest.Action | Should not beNullOrEmpty
-        }
-        It 'populates action args' {
-            $h.PretestTest.ActionArgs | Should not beNullOrEmpty
-        }
-        It 'includes a reference to the state machine' {
-            $h.PretestTest.StateMachine.GetType() | Should be 'StateMachine'
-        }
-    }
-    Context 'Configure Set' {
-        It '.MoveNext()' {
-            $h.e.CurrentStep = $h.InvokedCurrentStep
-            $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
-            $h.e.MoveNext() | Should be $true
-        }
-        It '.CurrentStep is empty' {
-            $h.e.CurrentStep | Should beNullOrEmpty
-        }
-        It '.MoveNext()' {
-            $h.e.CurrentStep = $h.InvokedCurrentStep
-            $h.e.StateMachine.RaiseEvent('TestCompleteSuccess')
-            $h.e.MoveNext() | Should be $true
-        }
-        It 'enumerator at node of first resource' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-        }
-        It 'correct state' {
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForSetExternal'
-        }
-        It '.CurrentStep is empty' {
-            $h.e.CurrentStep | Should beNullOrEmpty
-        }
-        It 'returns exactly one ConfigStep object' {
-            $h.ConfigureSet = Get-CurrentConfigStep -InputObject $h.e
-            $h.ConfigureSet.Count | Should be 1
-            $h.ConfigureSet.GetType() | Should be 'ConfigStep'
-        }
-        It 'a reference to the ConfigStep object is kept' {
-            $h.e.CurrentStep -eq $h.ConfigureSet | Should be $true
-        }
-        It 'populates Message' {
-            $h.ConfigureSet.Message | Should match 'Set resource \[StubResource5\]a'
-        }
-        It 'populates verb' {
-            $h.ConfigureSet.Verb | Should be 'Set'
-        }
-        It 'populates phase' {
-            $h.ConfigureSet.Phase | Should match 'Configure'
-        }
-    }
-    Context 'Configure Test' {
-        It '.MoveNext()' {
-            $h.e.CurrentStep = $h.InvokedCurrentStep
-            $h.e.StateMachine.RaiseEvent('SetComplete')
-            $h.e.MoveNext() | Should be $true
-        }
-        It 'enumerator at node of first resource' {
-            $h.e.NodeEnumerator.Current.Key | Should be '[StubResource5]a'
-        }
-        It 'correct state' {
-            $h.e.StateMachine.CurrentState.StateName | Should be 'ConfigureWaitForTestExternal'
-        }
-        It 'returns exactly one ConfigStep object' {
-            $h.ConfigureTest = Get-CurrentConfigStep -InputObject $h.e
-            $h.ConfigureTest.Count | Should be 1
-            $h.ConfigureTest.GetType() | Should be 'ConfigStep'
-        }
-        It 'populates Message' {
-            $h.ConfigureTest.Message | Should match 'Test resource \[StubResource5\]a'
-        }
-        It 'populates verb' {
-            $h.ConfigureTest.Verb | Should be 'Test'
-        }
-        It 'populates phase' {
-            $h.ConfigureTest.Phase | Should match 'Configure'
-        }
+        $i ++
     }
 }
+
 
 Describe 'Invoke-ConfigStep' {
     $h = @{}
@@ -517,204 +306,210 @@ Describe 'Invoke-ConfigStep' {
         It 'New-' {
             $h.e = $h.doc | New-ConfigInstructionEnumerator
         }
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
-        }
     }
-    Context 'Pretest Test- Success' {
-        It 'returns a test step' {
-            $h.Step = Get-CurrentConfigStep -InputObject $h.e
-            $h.Step.Verb | Should be 'Test'
-            $h.Step.Phase | Should be 'Pretest'
+    $i = 0
+    foreach ( $value in @(
+            # nodeKey           | StateName                             | EventName            | ProgressBefore | ProgressAfter | Result | Verb  | Phase    
+            @('[StubResource5]a','PretestWaitForTestExternal',          'TestCompleteSuccess',  'Pending',       'Complete',      $true,  'Test', 'PreTest' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
+            @('[StubResource5]c','PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal',         'SetComplete',          'Pending',       'Pending',       $null,  'Set',  'Configure' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal',        'TestCompleteSuccess',  'Pending',       'Complete',      $true,  'Test', 'Configure' ),
+            @('[StubResource5]c','ConfigureProgressWaitForSetExternal', 'SetComplete',          'Pending',       'Pending',       $null,  'Set',  'Configure' ),
+            @('[StubResource5]c','ConfigureProgressWaitForTestExternal','TestCompleteFailure',  'Pending',       'Failed',        $false, 'Test', 'Configure' ),
+            @($null,            ,'Ended')
+        )
+    )
+    {
+        $nodeKey,$stateName,$eventName,$progressBefore,$progressAfter,$result,$verb,$phase = $value
+        Context "Step $i" {
+            $moveNextResult = [bool]($stateName -ne 'Ended')
+            It ".MoveNext() returns $moveNextResult" {
+                $h.e.MoveNext() | Should be $moveNextResult
+            }
+            It "enumerator at node $nodeKey" {
+                $h.e.NodeEnumerator.Key | Should be $nodeKey
+            }
+            It "state machine in state $stateName" {
+                $h.e.StateMachine.CurrentState.StateName | Should be $stateName
+            }
+            if ( $stateName -ne 'Ended' )
+            {
+                It 'returns a step object' {
+                    $h.Step = Get-CurrentConfigStep -InputObject $h.e
+                    $h.Step.Verb | Should be $verb
+                    $h.Step.Phase | Should be $phase
+                }
+                It 'state machine initially has empty trigger queue' {
+                    $h.e.StateMachine.TriggerQueue.Count | Should be 0
+                }
+                It "progress was initially $progressBefore" {
+                    $h.e.NodeEnumerator.Value.Progress | Should be $progressBefore
+                }
+                It 'invoked was initially false' {
+                    $h.e.CurrentStep.Invoked | Should be $false
+                }
+                It 'Invoke' {
+                    $h.StepResult = $h.Step | Invoke-ConfigStep
+                }
+                It 'returns exactly one result object' {
+                    $h.StepResult.Count | Should be 1
+                    $h.StepResult.GetType() | Should be ConfigStepResult
+                }
+                It "event $eventName was raised" {
+                    $h.e.StateMachine.TriggerQueue.Count | Should be 1
+                    $h.e.StateMachine.TriggerQueue.Peek() | Should be $eventName
+                }
+                It "reports progress $progressAfter" {
+                    $h.e.NodeEnumerator.Value.Progress | Should be $progressAfter
+                }
+                It 'invoked was set to true' {
+                    $h.e.CurrentStep.Invoked | Should be $true
+                }
+                It 'populates message' {
+                    $h.StepResult.Message | Should match $verb
+                    $h.StepResult.Message | Should match ($nodeKey | ConvertTo-RegexEscapedString)
+                    $h.StepResult.Message | Should match 'Complete'
+                }
+                It "result is $result" {
+                    $h.StepResult.Result | Should be $result
+                }
+                It 'populates step' {
+                    $h.StepResult.Step -eq $h.Step | Should be $true
+                }
+            }
         }
-        It 'state machine initially has empty trigger queue' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 0
-        }
-        It 'progress was initially pending' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'invoked was initially false' {
-            $h.e.CurrentStep.Invoked | Should be $false
-        }
-        It 'Invoke' {
-            $h.TestResult = $h.Step | Invoke-ConfigStep
-        }
-        It 'correct event was raised' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 1
-            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteSuccess'
-        }
-        It 'reports correct progress' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Complete'
-        }
-        It 'invoked was set to true' {
-            $h.e.CurrentStep.Invoked | Should be $true
-        }
-        It 'returns exactly one result object' {
-            $h.TestResult.Count | Should be 1
-            $h.TestResult.GetType() | Should be ConfigStepResult
-        }
-        It 'populates message' {
-            $h.TestResult.Message | Should match 'Test'
-            $h.TestResult.Message | Should match '\[StubResource5\]a'
-            $h.TestResult.Message | Should match 'Complete'
-        }
-        It 'populates result code' {
-            $h.TestResult.Code | Should be 'Success'
-        }
-        It 'populates step' {
-            $h.TestResult.Step.GetType() | Should be 'ConfigStep'
-        }
+        $i ++
     }
-    Context 'Pretest Test- Failure' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+}
+
+$tests = [ordered]@{
+    'Skip All Steps' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
         }
-        It 'returns correct step' {
-            $h.Step = Get-CurrentConfigStep -InputObject $h.e
-            $h.Step.Verb | Should be 'Test'
-            $h.Step.Phase | Should be 'Pretest'
-        }
-        It 'state machine initially has empty trigger queue' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 0
-        }
-        It 'progress was initially pending' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'invoked was initially false' {
-            $h.e.CurrentStep.Invoked | Should be $false
-        }
-        It 'Invoke' {
-            $h.TestResult = $h.Step | Invoke-ConfigStep
-        }
-        It 'reports correct progress' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'correct event was raised' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 1
-            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteFailure'
-        }
-        It 'invoked was set to true' {
-            $h.e.CurrentStep.Invoked | Should be $true
-        }
-        It 'populates message' {
-            $h.TestResult.Message | Should match 'Test'
-        }
-        It 'populates result code' {
-            $h.TestResult.Code | Should be 'Failure'
-        }
+        Values = @(
+            # NodeKey           | StateName                    | Invoke? | Node Progress
+            @('[StubResource5]a','PretestWaitForTestExternal',  $false,   'Skipped'),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $false,   'Skipped'),
+            @($null,            ,'Ended' )
+        )
     }
-    Context 'Advance' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+    'Skip a Configure Set Step before Progress' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
         }
-        It 'invoke the step' {
-            Get-CurrentConfigStep -InputObject $h.e | 
-                Invoke-ConfigStep
-        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',    $true,    'Pending'),
+            @('[StubResource5]b','PretestWaitForTestExternal',    $true,    'Pending'),
+            @('[StubResource5]a','ConfigureWaitForSetExternal',   $false,   'Skipped'),
+            @('[StubResource5]b','ConfigureWaitForSetExternal',   $true,    'Pending'),
+            @('[StubResource5]b','ConfigureWaitForTestExternal',  $true,    'Complete'),
+            @($null,            ,'Ended' )
+        )
     }
-    Context 'Configure Set-' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+    'Skip a Configure Set Step after Progress' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+            StubResource5 'c' @{ Mode = 'Normal' }
         }
-        It 'returns correct step' {
-            $h.Step = Get-CurrentConfigStep -InputObject $h.e
-            $h.Step.Verb | Should be 'Set'
-            $h.Step.Phase | Should be 'Configure'
-        }
-        It 'state machine initially has empty trigger queue' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 0
-        }
-        It 'progress was initially pending' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'Invoke' {
-            $h.TestResult = $h.Step | Invoke-ConfigStep
-        }
-        It 'progress remains pending' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'correct event was raised' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 1
-            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'SetComplete'
-        }
-        It 'populates message' {
-            $h.TestResult.Message | Should match 'Set'
-        }
-        It 'populates result code' {
-            $h.TestResult.Code | Should be 'Complete'
-        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',            $true,    'Pending'),
+            @('[StubResource5]b','PretestWaitForTestExternal',            $true,    'Pending'),
+            @('[StubResource5]c','PretestWaitForTestExternal',            $true,    'Pending'),
+            @('[StubResource5]b','ConfigureWaitForSetExternal',           $true,    'Pending'),
+            @('[StubResource5]b','ConfigureWaitForTestExternal',          $true,    'Complete'),
+            @('[StubResource5]c','ConfigureProgressWaitForSetExternal',   $false,   'Skipped'),
+            @('[StubResource5]a','ConfigureWaitForSetExternal',           $true,    'Pending'),
+            @('[StubResource5]a','ConfigureWaitForTestExternal',          $true,    'Complete'),
+            @($null,            ,'Ended' )
+        )
     }
-    Context 'Configure Test- Success' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+    'Skip a Configure Test Step before Progress' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
         }
-        It 'returns correct step' {
-            $h.Step = Get-CurrentConfigStep -InputObject $h.e
-            $h.Step.Verb | Should be 'Test'
-            $h.Step.Phase | Should be 'Configure'
-        }
-        It 'state machine initially has empty trigger queue' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 0
-        }
-        It 'progress was initially pending' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'Invoke' {
-            $h.TestResult = $h.Step | Invoke-ConfigStep
-        }
-        It 'reports correct progress' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Complete'
-        }
-        It 'correct event was raised' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 1
-            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteSuccess'
-        }
-        It 'populates message' {
-            $h.TestResult.Message | Should match 'Test'
-        }
-        It 'populates result code' {
-            $h.TestResult.Code | Should be 'Success'
-        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',    $true,    'Pending'),
+            @('[StubResource5]b','PretestWaitForTestExternal',    $true,    'Pending'),
+            @('[StubResource5]a','ConfigureWaitForSetExternal',   $true,    'Pending'),
+            @('[StubResource5]a','ConfigureWaitForTestExternal',  $false,   'Skipped'),
+            @('[StubResource5]b','ConfigureWaitForSetExternal',   $true,    'Pending'),
+            @('[StubResource5]b','ConfigureWaitForTestExternal',  $true,    'Complete'),
+            @($null,            ,'Ended' )
+        )
     }
-    Context 'Advance' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+    'Skip a Configure Test Step after Progress' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+            StubResource5 'c' @{ Mode = 'Normal' }
         }
-        It 'invoke the step' {
-            Get-CurrentConfigStep -InputObject $h.e | 
-                Invoke-ConfigStep
-        }
+        Values = @(
+            @('[StubResource5]a','PretestWaitForTestExternal',            $true,    'Pending'),
+            @('[StubResource5]b','PretestWaitForTestExternal',            $true,    'Pending'),
+            @('[StubResource5]c','PretestWaitForTestExternal',            $true,    'Pending'),
+            @('[StubResource5]b','ConfigureWaitForSetExternal',           $true,    'Pending'),
+            @('[StubResource5]b','ConfigureWaitForTestExternal',          $true,    'Complete'),
+            @('[StubResource5]c','ConfigureProgressWaitForSetExternal',   $true,    'Pending'),
+            @('[StubResource5]c','ConfigureProgressWaitForTestExternal',  $false,   'Skipped'),
+            @('[StubResource5]a','ConfigureWaitForSetExternal',           $true,    'Pending'),
+            @('[StubResource5]a','ConfigureWaitForTestExternal',          $true,    'Complete'),
+            @($null,            ,'Ended' )
+        )
     }
-    Context 'Configure Test- Failure' {
-        It '.MoveNext()' {
-            $h.e.MoveNext() | Should be $true
+}
+
+foreach ( $testName in $tests.Keys )
+{
+    Describe "ConfigInstructionEnumerator.MoveNext() with step invokations ($testName)" {
+        $h = @{}
+        It 'create test document' {
+            $h.doc = New-RawConfigDocument Name $tests.$testName.ConfigDocument |
+                ConvertTo-ConfigDocument
         }
-        It 'returns correct step' {
-            $h.Step = Get-CurrentConfigStep -InputObject $h.e
-            $h.Step.Verb | Should be 'Test'
-            $h.Step.Phase | Should be 'Configure'
+        It 'New-' {
+            $h.e = $h.doc | New-ConfigInstructionEnumerator
         }
-        It 'state machine initially has empty trigger queue' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 0
-        }
-        It 'progress was initially pending' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Pending'
-        }
-        It 'Invoke' {
-            $h.TestResult = $h.Step | Invoke-ConfigStep
-        }
-        It 'reports correct progress' {
-            $h.e.NodeEnumerator.Value.Progress | Should be 'Failed'
-        }
-        It 'correct event was raised' {
-            $h.e.StateMachine.TriggerQueue.Count | Should be 1
-            $h.e.StateMachine.TriggerQueue.Peek() | Should be 'TestCompleteFailure'
-        }
-        It 'populates message' {
-            $h.TestResult.Message | Should match 'Test'
-        }
-        It 'populates result code' {
-            $h.TestResult.Code | Should be 'Failure'
+        $i = 0
+        foreach ( $value in $tests.$testName.Values
+        )
+        {
+            $nodeKey,$stateName,$invoke,$progress = $value
+            Context "Step $i" {
+                $moveNextResult = [bool]($stateName -ne 'Ended')
+                It ".MoveNext() returns $moveNextResult" {
+                    $h.e.MoveNext() | Should be $moveNextResult
+                }
+                It "enumerator at node $nodeKey" {
+                    $h.e.NodeEnumerator.Key | Should be $nodeKey
+                }
+                It "state machine in state $stateName" {
+                    $h.e.StateMachine.CurrentState.StateName | Should be $stateName
+                }
+                if ( $invoke )
+                {
+                    It "invoke step" {
+                        $h.e.Current.Invoke()
+                    }
+                }
+                if ( $progress )
+                {
+                    It "node progress set to $progress" {
+                        $h.e.NodeEnumerator.Current.Value.Progress = $progress
+                    }
+                }
+            }
+            $i++
         }
     }
 }
