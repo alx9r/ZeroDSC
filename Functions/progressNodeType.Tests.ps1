@@ -28,3 +28,25 @@ Describe New-ProgressNodes {
     }
 }
 
+InModuleScope ZeroDsc {
+    Describe Reset-ProgressNodes {
+        $nodes = [System.Collections.Generic.Dictionary[string,ProgressNode]]::new()
+        It 'set all nodes to complete' {
+            'a','b','c' |
+                % { 
+                    $node = [ProgressNode]::new()
+                    $node.Progress = 'Complete'
+                    $nodes.Add($_,$node)
+                }
+        }
+        It 'invoke reset' {
+            $nodes | Reset-ProgressNodes
+        }
+        It 'all nodes are set to pending' {
+            foreach ( $node in $nodes.GetEnumerator() )
+            {
+                $node.Value.Progress | Should be 'Pending'
+            }
+        }
+    }
+}

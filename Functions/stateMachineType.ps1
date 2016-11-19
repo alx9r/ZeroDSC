@@ -61,7 +61,13 @@ function Reset-StateMachine
     )
     process
     {
-        throw [System.NotImplementedException]::new('Reset-StateMachine')
+        # reset current state to default
+        $StateMachine.CurrentState = $StateMachine.StateList.Values |
+            ? { $_.IsDefaultState -eq $true } |
+            Select -First 1
+
+        # clear trigger queue
+        $StateMachine.TriggerQueue.Clear() | Out-Null
     }
 }
 

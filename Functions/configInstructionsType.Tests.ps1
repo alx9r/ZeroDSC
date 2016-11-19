@@ -513,3 +513,48 @@ foreach ( $testName in $tests.Keys )
         }
     }
 }
+
+Describe 'ConfigInstructionsEnumerator.Reset()' {
+    $h = @{}
+    It 'create test document' {
+        $h.doc = New-RawConfigDocument Name {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        } |
+            ConvertTo-ConfigDocument
+    }
+    It 'New-' {
+        $h.e = $h.doc | New-ConfigInstructionEnumerator
+    }
+    $results = New-Object System.Collections.Queue
+    Context 'Invoke all steps and collect data before Reset' {
+        foreach ( $step in $h.e )
+        {
+            It $step.Message { 
+                $r = $step.Invoke()
+                $results.Enqueue($r)
+            }
+        }
+    }
+    It '.Reset()' {
+        $h.e.Reset()
+    }
+    Context 'Invoke all steps again and compare to data from before Reset' {
+        foreach ( $step in $h.e )
+        {      
+            It $step.Message {
+                $h.AfterResetResult = $step.Invoke()
+                $h.BeforeResetResult = $results.Dequeue()
+            }
+            It '  Step message matches' {
+                $h.AfterResetResult.Step.Message | 
+                    Should be $h.BeforeResetResult.Step.Message
+            }
+            It '  Result message matches' {
+                $h.AfterResetResult.Message | 
+                    Should be $h.BeforeResetResult.Message
+            }
+        }
+    }
+}

@@ -44,11 +44,14 @@ function Reset-ProgressNodes
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [System.Collections.Generic.Dictionary[System.String,BoundResourceBase]]
-        $InputObject
+        [System.Collections.Generic.Dictionary[System.String,ProgressNode]]
+        $Nodes
     )
     process
     {
-        throw [System.NotImplementedException]::new('Reset-ProgressNodes')
+        foreach ( $node in $Nodes.GetEnumerator() )
+        {
+            $node.Value.Progress = [Progress]::Pending
+        }
     }
 }

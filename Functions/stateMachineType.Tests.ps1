@@ -487,6 +487,26 @@ Describe Invoke-RunNext {
     }
 }
 
+Describe Reset-StateMachine {
+    $states = @(
+        @{ StateName = 'a' ; IsDefaultState = $true }
+        @{ StateName = 'b' }
+    ) | New-State
+    $sm = New-StateMachine $states
+    $sm.CurrentState = $sm.StateList.b
+    $sm.TriggerQueue.Enqueue('eventName')
+    It 'returns nothing' {
+        $r = $sm | Reset-StateMachine
+        $r | Should beNullOrEmpty
+    }
+    It 'CurrentState is set to default state after clear' {
+        $sm.CurrentState -eq $states[0] | Should be $true
+    }
+    It 'TriggerQueue is empty' {
+        $sm.TriggerQueue.Count | Should be 0
+    }
+}
+
 Describe Add-Event {
     Context 'external invokation' {
         $states = @(

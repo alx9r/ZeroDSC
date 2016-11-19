@@ -143,8 +143,9 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
     Reset ()
     {
         $this.Nodes | Reset-ProgressNodes
-        $this.NodeEnumerator = $this.Nodes.GetEnumerator()
+        $this.NodeEnumerator.Reset()
         $this.StateMachine.Reset()
+        $this.StateMachine.RaiseEvent('Start')
     }
     Dispose () {}
 }
