@@ -48,7 +48,7 @@ Describe 'Import- and Remove-DscResource' {
         }
     }
 }
-Describe 'sample configuration scriptblock' {
+Describe 'Import-DscResource using sample configuration scriptblock' {
     It 'create the scriptblock' {
         $records.BoundScriptBlock = (Get-Module ZeroDsc).NewBoundScriptBlock({
             Get-DscResource StubResource4A |
