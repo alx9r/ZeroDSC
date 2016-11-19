@@ -1,10 +1,12 @@
-class RawResourceConfigInfo {
+class RawResourceConfigInfo
+{
     [hashtable] $Params
     [string] $ConfigName
     [System.Management.Automation.InvocationInfo]$InvocationInfo
 }
 
-class ResourceConfigInfo {
+class ResourceConfigInfo
+{
     [ResourceParamsBase] $Params
     [System.Management.Automation.InvocationInfo]$InvocationInfo
 
