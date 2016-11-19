@@ -29,15 +29,21 @@ function New-ConfigStateMachine
         === Nodes ===
         A node of the external resource node collection.  A node can be tested 
         by invoking TestNode for the following:
-            - The node is already complete.  A node is complete when a test of
+            * Complete - The node is already complete.  A node is complete when a test of
               the underlying resource has returned true in the past.  TestNode
               must raise AtNodeComplete for such a node.
-            - The node is ready for configuration. A node is ready for configuration
+            * Ready - The node is ready for configuration. A node is ready for configuration
               when all nodes it depends on are complete.  TestNode must raise
               AtNodeComplete for such a node.
-            - The node is not ready for configuration.  A nod is not ready for
+            * Not Ready - The node is not ready for configuration.  A node is not ready for
               configuration when nodes it depends on are not complete.  TestNode
-              must raise AdNodeNotReady for such a node.
+              must raise AtNodeNotReady for such a node.
+            * Skipped - A configuration step for the node was skipped.  TestNode must raise
+              AtNodeSkipped for such a node.
+            * Failed - Configuration of the node has failed.  TestNode must raise
+              AtNodeFailed for such a node.
+            * End of Collection - The node is past the end of the collection.  TestNode must
+              raise AtEndOfCollection.
 
         === Phases ===
         Pretest - An initial pass is made through all resources.  Each resource
