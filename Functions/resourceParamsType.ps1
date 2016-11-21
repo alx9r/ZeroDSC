@@ -1,41 +1,45 @@
 class ResourceParamsBase {
-    [string[]] $_DependsOn = $($this | Add-Member ScriptProperty 'DependsOn' {
-            $this._DependsOn
-        } {
-            param ( [string[]] $DependsOn )
-            $DependsOn | Test-ValidConfigPath -ErrorAction Stop
-            $this._DependsOn = $DependsOn
+    hidden [string[]] $_DependsOn = (Accessor $this {
+            get
+            set {
+                param ( [string[]] $DependsOn )
+                $DependsOn | Test-ValidConfigPath -ErrorAction Stop
+                $this._DependsOn = $DependsOn
+            }
         })
 
     [hashtable] $Params = @{}
 }
 class ResourceParams : ResourceParamsBase {
-    [string] $_ComputerName = $($this | Add-Member ScriptProperty 'ComputerName' {
-            $this._ComputerName
-        } {
+    hidden [string] $_ComputerName = (Accessor $this {
+        get
+        set {
             param( [string] $ComputerName )
             $ComputerName | Test-ValidDomainName -ErrorAction Stop
             $this._ComputerName = $ComputerName
-        })
+        }
+    })
 
     [pscredential] $PSRunAsCredential
 }
 class AggregateParams : ResourceParamsBase {
-    [string] $_Type = $($this | Add-Member ScriptProperty 'Type' {
-            $this._Type
-        } {
+    hidden [string] $_Type = (Accessor $this {
+        get
+        set {
             param( [string] $Type )
             $Type | Test-ValidAggregateTypeName -ErrorAction Stop
             $this._Type = $Type
-        })
+        }
+    })
 
-    [string] $_Test = $($this | Add-Member ScriptProperty 'Test' {
-            $this._Test
-        } {
+    hidden [string] $_Test = (Accessor $this {
+        get
+        set {
             param( [string] $Test )
             $Test | Test-ValidAggregateTest -ErrorAction Stop
             $this._Test = $Test
-        })
+        }
+    })
 }
 
 function ConvertTo-ResourceParams

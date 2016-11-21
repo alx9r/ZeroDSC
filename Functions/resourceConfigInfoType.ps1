@@ -10,25 +10,23 @@ class ResourceConfigInfo
     [ResourceParamsBase] $Params
     [System.Management.Automation.InvocationInfo]$InvocationInfo
 
-    hidden [string] $_ResourceName = $($this | Add-Member ScriptProperty 'ResourceName' { 
-            # get
-            $this._ResourceName
-        } { 
-            # set
+    hidden [string] $_ResourceName = (Accessor $this { 
+        get;
+        set { 
             param ( [string] $ResourceName )
             $ResourceName | Test-ValidResourceName -ErrorAction Stop
             $this._ResourceName = $ResourceName
-        })
+        }
+    })
 
-    hidden [string] $_ConfigName = $($this | Add-Member ScriptProperty 'ConfigName' {
-            # get
-            $this._ConfigName
-        } { 
-            # set
+    hidden [string] $_ConfigName = (Accessor $this {
+        get;
+        set { 
             param ( [string] $ConfigName )
             $ConfigName | Test-ValidConfigName -ErrorAction Stop
             $this._ConfigName = $ConfigName
-        })
+        }
+    })
 
     [string] GetConfigPath() 
     { 
