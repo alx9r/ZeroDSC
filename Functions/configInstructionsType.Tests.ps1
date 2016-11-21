@@ -5,7 +5,7 @@ Describe 'Test Environment' {
         . "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
     }
 }
-
+<#
 Describe 'New-ConfigInstructionEnumerator' {
     $h = @{}
     It 'create test document' {
@@ -251,6 +251,9 @@ Describe 'Get-CurrentConfigStep' {
                 It 'a reference to the ConfigStep object is kept' {
                     $h.e.CurrentStep -eq $h.Step | Should be $true
                 }
+                It 'populates ResourceName' {
+                    $h.Step.ResourceName | Should be $nodeKey
+                }
                 It 'populates Message' {
                     $h.Step.Message | Should match $message
                 }
@@ -265,6 +268,9 @@ Describe 'Get-CurrentConfigStep' {
                 }
                 It 'populates action args' {
                     $h.Step.ActionArgs | Should not beNullOrEmpty
+                }
+                It 'populates node' {
+                    $h.Step.Node | Should be $h.e.NodeEnumerator.Value
                 }
                 It 'includes a reference to the state machine' {
                     $h.Step.StateMachine.GetType() | Should be 'StateMachine'
@@ -289,7 +295,7 @@ Describe 'Get-CurrentConfigStep' {
         $i ++
     }
 }
-
+#>
 
 Describe 'Invoke-ConfigStep' {
     $h = @{}
@@ -363,10 +369,13 @@ Describe 'Invoke-ConfigStep' {
                 It "reports progress $progressAfter" {
                     $h.e.NodeEnumerator.Value.Progress | Should be $progressAfter
                 }
+                It ".Progress is $progressAfter" {
+                    $h.StepResult.Progress | Should be $progressAfter
+                }
                 It 'invoked was set to true' {
                     $h.e.CurrentStep.Invoked | Should be $true
                 }
-                It 'populates message' {
+                It 'populates .Message' {
                     $h.StepResult.Message | Should match $verb
                     $h.StepResult.Message | Should match ($nodeKey | ConvertTo-RegexEscapedString)
                     $h.StepResult.Message | Should match 'Complete'
@@ -374,8 +383,17 @@ Describe 'Invoke-ConfigStep' {
                 It "result is $result" {
                     $h.StepResult.Result | Should be $result
                 }
-                It 'populates step' {
+                It 'populates .Step' {
                     $h.StepResult.Step -eq $h.Step | Should be $true
+                }
+                It 'populates .Verb' {
+                    $h.StepResult.Verb | Should be $verb
+                }
+                It 'populates .Phase' {
+                    $h.StepResult.Phase | Should be $phase
+                }
+                It 'populates .ResourceName' {
+                    $h.StepResult.ResourceName | Should be $nodeKey
                 }
             }
         }

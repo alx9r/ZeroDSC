@@ -254,10 +254,12 @@ function Get-CurrentConfigStep
 
         # create the output object and populate some fields
         $outputObject = New-Object ConfigStep -Property @{
+            ResourceName = $InputObject.NodeEnumerator.Key
             Message = "$verb resource $($InputObject.NodeEnumerator.Key)"
             Verb = $verb
             Phase = $phase
             StateMachine = $InputObject.StateMachine
+            Node = $InputObject.NodeEnumerator.Value
         }
 
         # populate the action

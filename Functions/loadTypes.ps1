@@ -9,8 +9,8 @@
     'configDocumentType.ps1'
 
     'stateMachineType.ps1'
-    'configStepType.ps1'
     'progressNodeType.ps1'
+    'configStepType.ps1'
     'configInstructionsType.ps1'
 ) |
 % { . "$($PSCommandPath | Split-Path -Parent)\$_" }
