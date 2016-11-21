@@ -1,11 +1,11 @@
-Import-Module ZeroDsc -Force
+Import-Module ZeroDsc -Force -Args ExportAll
 
 Describe 'Test Environment' {
     It 'add the test stubs to PSModulePath' {
         . "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
     }
 }
-<#
+
 Describe 'New-ConfigInstructionEnumerator' {
     $h = @{}
     It 'create test document' {
@@ -295,7 +295,7 @@ Describe 'Get-CurrentConfigStep' {
         $i ++
     }
 }
-#>
+
 
 Describe 'Invoke-ConfigStep' {
     $h = @{}

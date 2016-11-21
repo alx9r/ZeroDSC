@@ -20,6 +20,23 @@ $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
     } |
     % { . $_.FullName }
 
-# Export all the functions and module members here.
-# Use the module manifest to filter exported module members.
-Export-ModuleMember -Function * -Alias *
+
+if ( $args[0] -eq 'ExportAll' )
+{
+    # This option is provided to streamline testing of
+    # non-public module members.
+    Export-ModuleMember -Function * -Alias *
+}
+else
+{
+    # the list of module members to export by default
+    Export-ModuleMember -Function @(
+        'Import-DscResource'
+        'New-RawConfigDocument'
+        'ConvertTo-ConfigDocument'
+        'New-ConfigInstructions'
+        'Invoke-ConfigStep'
+
+        'New-ResourceInvoker'
+    )
+}

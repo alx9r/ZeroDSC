@@ -1,4 +1,4 @@
-Import-Module ZeroDSC -Force
+Import-Module ZeroDsc -Force -Args ExportAll
 
 . "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
 
