@@ -1,4 +1,4 @@
-class ClassResourceInvoker : ResourceInvoker 
+class ClassResourceInvoker : ResourceInvoker
 {
     $ResourceObject
 
@@ -36,7 +36,7 @@ function Test-ClassResourceType
     {
         try
         {
-            $DscResource | 
+            $DscResource |
                 New-ClassResourceObject |
                 Out-Null
             return $true
@@ -63,7 +63,7 @@ function New-ClassResourceObject
         foreach ( $module in ( @(
                 $DscResource.Module
                 $DscResource.Module.NestedModules
-            ) | ? {$_} ) 
+            ) | ? {$_} )
         )
         {
             $module | Import-Module
@@ -98,8 +98,8 @@ function New-ClassResourceObject
 
             # check for the DscResource() attribute
             if ( -not (
-                    $object.GetType().CustomAttributes | 
-                        ? { $_.AttributeType -eq ([System.Management.Automation.DscResourceAttribute]) } 
+                    $object.GetType().CustomAttributes |
+                        ? { $_.AttributeType -eq ([System.Management.Automation.DscResourceAttribute]) }
                 )
             )
             {

@@ -54,7 +54,7 @@ enum Event
 }
 
 class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
-    [System.Collections.Generic.Dictionary[string,ProgressNode]] 
+    [System.Collections.Generic.Dictionary[string,ProgressNode]]
     $Nodes
 
     $NodeEnumerator
@@ -75,7 +75,7 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
     {
         # scriptblock that tests the current node's progress
         # and raises a state machine event accordingly
-        $testNode = { 
+        $testNode = {
             if
             (
                 $null -eq $this.NodeEnumerator.Value -and
@@ -135,7 +135,7 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
         return $this._get_Current()
     }
 
-    [bool] MoveNext () 
+    [bool] MoveNext ()
     {
         return Move-NextConfigStep -Enumerator $this
     }
@@ -154,9 +154,9 @@ class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collecti
 {
     ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument ) : base( $ConfigDocument ) {}
 
-    [ConfigStep] get_Current () 
+    [ConfigStep] get_Current ()
     {
-        return ([ConfigInstructionEnumerator]$this)._get_Current() 
+        return ([ConfigInstructionEnumerator]$this)._get_Current()
     }
 }
 
@@ -188,7 +188,7 @@ function Move-NextConfigStep
     process
     {
         # the current step has not been invoked
-        if 
+        if
         (
             $Enumerator.StateMachine.CurrentState.StateName -match
             '(Pretest|Configure).*External' -and
@@ -264,7 +264,7 @@ function Get-CurrentConfigStep
 
         # populate the action
         $outputObject.Action = @{
-            Test = { 
+            Test = {
                 # invoke the test
                 $result = $resource.Resource.Invoke('Test')
 

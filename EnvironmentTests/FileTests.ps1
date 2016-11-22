@@ -24,7 +24,7 @@ Describe 'File' {
                 Should not beNullOrEmpty
         }
         It 'the input instance is of type MSFT_FileDirectoryConfiguration' {
-            $r = $record.InputResource | 
+            $r = $record.InputResource |
                 Get-Member |
                 Select -First 1
             $r.TypeName |
@@ -46,7 +46,7 @@ Describe 'File' {
                 Flags = 0 # Uint32 "Flags passed to the providers. Reserved for future use."
                 InputResource = $record.InputResource
             }
-        }        
+        }
         It 'invoke Test() [1]' {
             $record.Test1 = Invoke-CimMethod TestTargetResource @splat
             $record.Test1 | Should not beNullOrEmpty

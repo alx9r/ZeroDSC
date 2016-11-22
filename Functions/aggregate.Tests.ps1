@@ -19,7 +19,7 @@ Describe Test-ValidAggregateTypeName {
         It 'invalid' {
             $r = 'invalid' | Test-ValidAggregateTypeName
             $r | Should be $false
-        }    
+        }
     }
 }
 
@@ -56,6 +56,6 @@ Describe Test-ValidAggregateTest {
                 $r = $test | Test-ValidAggregateTest
                 $r | Should be $false
             }
-        }  
+        }
     }
 }

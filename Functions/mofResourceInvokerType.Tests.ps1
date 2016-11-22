@@ -121,7 +121,7 @@ Describe Invoke-MofResourceCommand {
 }
 
 Describe Invoke-PruneParams {
-    $c = $records.StubResource1AFriendlyName.DscResource | 
+    $c = $records.StubResource1AFriendlyName.DscResource |
         Get-MofResourceCommands |
         % { $_.'Get-TargetResource' }
     $p = @{

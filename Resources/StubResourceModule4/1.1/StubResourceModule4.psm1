@@ -3,11 +3,11 @@ class StubResource4A
 {
     [System.Version]
     $Version = '1.1'
-    
+
     [DscProperty(Key)]
     [string]
     $StringParam1
-    
+
     [DscProperty()]
     [string]
     $StringParam2

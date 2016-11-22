@@ -161,7 +161,7 @@ foreach ( $testName in $tests.Keys )
         }
         $i = 0
         foreach
-        ( 
+        (
             $value in $tests.$testName.Values
         )
         {
@@ -315,7 +315,7 @@ Describe 'Invoke-ConfigStep' {
     }
     $i = 0
     foreach ( $value in @(
-            # nodeKey           | StateName                             | EventName            | ProgressBefore | ProgressAfter | Result | Verb  | Phase    
+            # nodeKey           | StateName                             | EventName            | ProgressBefore | ProgressAfter | Result | Verb  | Phase
             @('[StubResource5]a','PretestWaitForTestExternal',          'TestCompleteSuccess',  'Pending',       'Complete',      $true,  'Test', 'PreTest' ),
             @('[StubResource5]b','PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
             @('[StubResource5]c','PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
@@ -549,7 +549,7 @@ Describe 'ConfigInstructionsEnumerator.Reset()' {
     Context 'Invoke all steps and collect data before Reset' {
         foreach ( $step in $h.e )
         {
-            It $step.Message { 
+            It $step.Message {
                 $r = $step.Invoke()
                 $results.Enqueue($r)
             }
@@ -560,17 +560,17 @@ Describe 'ConfigInstructionsEnumerator.Reset()' {
     }
     Context 'Invoke all steps again and compare to data from before Reset' {
         foreach ( $step in $h.e )
-        {      
+        {
             It $step.Message {
                 $h.AfterResetResult = $step.Invoke()
                 $h.BeforeResetResult = $results.Dequeue()
             }
             It '  Step message matches' {
-                $h.AfterResetResult.Step.Message | 
+                $h.AfterResetResult.Step.Message |
                     Should be $h.BeforeResetResult.Step.Message
             }
             It '  Result message matches' {
-                $h.AfterResetResult.Message | 
+                $h.AfterResetResult.Message |
                     Should be $h.BeforeResetResult.Message
             }
         }

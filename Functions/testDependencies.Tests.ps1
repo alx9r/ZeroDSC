@@ -13,11 +13,11 @@ Describe Test-DependenciesMet {
             $records.Nodes = New-RawConfigDocument Name {
                 Get-DscResource StubResource5 | Import-DscResource
                 StubResource5 'a' @{ Mode = 'Normal' }
-                StubResource5 'b' @{ 
+                StubResource5 'b' @{
                     Mode = 'Normal'
                     DependsOn = '[StubResource5]a'
                 }
-                StubResource5 'c' @{ 
+                StubResource5 'c' @{
                     Mode = 'Normal'
                     DependsOn = '[StubResource5]a','[StubResource5]b'
                 }
@@ -46,7 +46,7 @@ Describe Test-DependenciesMet {
         }
         It 'returns false for one parent complete another parent incomplete' {
             $r = '[StubResource5]c' | Test-DependenciesMet $records.Nodes
-            $r | Should be $false      
+            $r | Should be $false
         }
         It 'returns true for two complete parents' {
             $records.Nodes.'[StubResource5]b'.Progress = 'Complete'

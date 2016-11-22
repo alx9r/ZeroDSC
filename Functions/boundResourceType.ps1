@@ -31,7 +31,7 @@ function ConvertTo-BoundResource
     process
     {
         if
-        ( 
+        (
             $Config -isnot [AggregateConfigInfo] -and
             -not $Resource
         )
@@ -56,7 +56,7 @@ function ConvertTo-BoundResource
 
         if ( $Config -is [AggregateConfigInfo] )
         {
-            $outputObject = [BoundAggregate]::new()      
+            $outputObject = [BoundAggregate]::new()
         }
         else
         {

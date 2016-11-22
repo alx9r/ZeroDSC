@@ -11,7 +11,7 @@ function Test-ValidAggregateTypeName
     {
         if ( $TypeName -notin 'Count' )
         {
-            &(Publish-Failure "$TypeName is not a valid aggregate type name",'TypeName' ([System.ArgumentException]))            
+            &(Publish-Failure "$TypeName is not a valid aggregate type name",'TypeName' ([System.ArgumentException]))
             return $false
         }
 
@@ -32,7 +32,7 @@ function Test-ValidAggregateTest
     {
         if ( $Test -notin '-eq 0','-gt 0' )
         {
-            &(Publish-Failure "$Test is not a valid aggregate test",'Test' ([System.ArgumentException]))            
+            &(Publish-Failure "$Test is not a valid aggregate test",'Test' ([System.ArgumentException]))
             return $false
         }
 

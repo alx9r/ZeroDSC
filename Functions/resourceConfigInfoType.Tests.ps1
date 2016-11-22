@@ -37,7 +37,7 @@ Describe ConvertTo-ResourceConfigInfo {
         $r = Invoke-Command {
             ResourceName ConfigName |
                 ConvertTo-ResourceConfigInfo
-        } 
+        }
         $r.GetType() | Should be 'ResourceConfigInfo'
     }
     It '...except when the resource name is Aggregate' {
@@ -55,7 +55,7 @@ Describe ConvertTo-ResourceConfigInfo {
     It 'correctly extracts ResourceName from InvocationInfo' {
         $r = New-RawResourceConfigInfo ConfigName |
             ConvertTo-ResourceConfigInfo
-        $r.ResourceName | Should be 'New-RawResourceConfigInfo'        
+        $r.ResourceName | Should be 'New-RawResourceConfigInfo'
     }
     It '...even when an alias is used' {
         Set-Alias ResourceName New-RawResourceConfigInfo
@@ -75,7 +75,7 @@ Describe ConvertTo-ResourceConfigInfo {
             ConvertTo-ResourceConfigInfo
         $r.GetConfigPath() | Should be '[New-RawResourceConfigInfo]ConfigName'
     }
-    InModuleScope ZeroDsc {    
+    InModuleScope ZeroDsc {
         foreach ( $typeName in 'ResourceParams','AggregateParams' )
         {
             Context "Params [$typeName]" {
@@ -195,7 +195,7 @@ Describe Get-ResourceNameFromInvocationLine {
                 '$r = ResourceName -ConfigName ConfigName -Params @{}'
                 '$r = ResourceName ConfigName $params'
                 '$(a.''b'') = ResourceName ConfigName $params'
-            ) 
+            )
         )
         {
             It $line {

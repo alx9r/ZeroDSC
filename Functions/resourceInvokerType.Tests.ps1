@@ -34,5 +34,3 @@ Describe New-ResourceInvoker {
         $r.GetType().Name | Should be 'ClassResourceInvoker'
     }
 }
-
-

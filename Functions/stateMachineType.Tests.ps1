@@ -163,7 +163,7 @@ Describe New-StateMachine {
         It 'throws' {
             { New-StateMachine $states } |
                 Should throw 'Duplicate StateName a'
-        }        
+        }
     }
     Context 'duplicate transition' {
         $states = @{ StateName = 'a' ; IsDefaultState = $true } |
@@ -196,7 +196,7 @@ Describe New-StateMachine {
                 Triggers = 'trigger'
                 SourceStateName = 'b'
                 TargetStateName = 'a'
-            }            
+            }
         )
         It 'throws' {
             { New-StateMachine $states $transitions } |
@@ -211,7 +211,7 @@ Describe New-StateMachine {
                 Triggers = 'trigger'
                 SourceStateName = 'a'
                 TargetStateName = 'b'
-            }            
+            }
         )
         It 'throws' {
             { New-StateMachine $states $transitions } |
@@ -282,7 +282,7 @@ Describe Invoke-RunNext {
     Context 'invokes exit actions' {
         $h = @{}
         $states = @(
-            @{ 
+            @{
                 StateName = 'a' ; IsDefaultState = $true
                 ExitActions = @(
                     { $h.Action1 = 'invoked' }
@@ -316,7 +316,7 @@ Describe Invoke-RunNext {
         $h = @{}
         $states = @(
             @{ StateName = 'a' ; IsDefaultState = $true }
-            @{ 
+            @{
                 StateName = 'b'
                 EntryActions = @(
                     { $h.Action1 = 'invoked' }
@@ -380,11 +380,11 @@ Describe Invoke-RunNext {
         $h = @{}
         $h.i = 1
         $states = @(
-            @{ 
-                StateName = 'a' ; IsDefaultState = $true 
+            @{
+                StateName = 'a' ; IsDefaultState = $true
                 ExitActions = { $h.Action1 = $h.i; $h.i++ }
             }
-            @{ 
+            @{
                 StateName = 'b'
                 EntryActions = { $h.Action3 = $h.i; $h.i++ }
             }
@@ -419,9 +419,9 @@ Describe Invoke-RunNext {
         $b = @{ v1 = 1}
         $variables = Get-Variable 'a','b'
         $states = @(
-            @{ 
+            @{
                 StateName = 'a' ; IsDefaultState = $true
-                ExitActions = { 
+                ExitActions = {
                     $a.v2 = $a.v1
                     $b.v2 = $b.v1
                 }
@@ -454,9 +454,9 @@ Describe Invoke-RunNext {
     Context 'exception in exit action' {
         $h = @{}
         $states = @(
-            @{ 
+            @{
                 StateName = 'a' ; IsDefaultState = $true
-                ExitActions = { 
+                ExitActions = {
                     $h.Action = 'invoked'
                     throw 'exception in action'
                 }
@@ -530,8 +530,8 @@ Describe Add-Event {
     }
     Context 'invokation from internal action' {
         $states = @(
-            @{ 
-                StateName = 'a' ; IsDefaultState = $true 
+            @{
+                StateName = 'a' ; IsDefaultState = $true
                 ExitActions = {
                     RaiseEvent 'event raised in action'
                 }
@@ -563,7 +563,7 @@ Describe 'complete StateMachine' {
 
     $states = @(
         @{ StateName = [State]::a ; IsDefaultState = $true }
-        @{ 
+        @{
             StateName = [State]::b
             EntryActions = { RaiseEvent([Event]::BDone) }
         }
@@ -593,7 +593,7 @@ Describe 'complete StateMachine' {
     ) | New-Transition
 
     $sm = New-StateMachine $states $transitions
-    
+
     It 'starts in default state' {
         $sm.CurrentState.StateName | Should be 'a'
     }

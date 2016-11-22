@@ -4,7 +4,7 @@ class StubResource3A
     [DscProperty(Key)]
     [string]
     $StringParam1
-    
+
     [DscProperty()]
     [string]
     $StringParam2
@@ -25,7 +25,7 @@ class StubResource3B
     [DscProperty(Key)]
     [string]
     $StringParam1
-    
+
     [DscProperty()]
     [string]
     $StringParam2

@@ -68,16 +68,16 @@ Describe 'loading of builtin resources for invokation' {
     {
         $resource = $records.$resourceName.DscResource
 
-        Context "resource $resourceName" {        
+        Context "resource $resourceName" {
             if
-            ( 
+            (
                 $resourceName -notin $expectedBuiltin -or
-                $resourceName -notin $expectedNotLoadable 
+                $resourceName -notin $expectedNotLoadable
             )
             {
                 It 'successfully creates an invoker object' {
                     $resource | New-ResourceInvoker
-                }        
+                }
             }
             else
             {

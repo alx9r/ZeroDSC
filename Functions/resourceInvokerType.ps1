@@ -1,5 +1,5 @@
-class ResourceInvoker 
-{ 
+class ResourceInvoker
+{
     [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
     $ResourceInfo
 

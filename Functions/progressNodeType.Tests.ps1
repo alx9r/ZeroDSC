@@ -33,7 +33,7 @@ InModuleScope ZeroDsc {
         $nodes = [System.Collections.Generic.Dictionary[string,ProgressNode]]::new()
         It 'set all nodes to complete' {
             'a','b','c' |
-                % { 
+                % {
                     $node = [ProgressNode]::new()
                     $node.Progress = 'Complete'
                     $nodes.Add($_,$node)

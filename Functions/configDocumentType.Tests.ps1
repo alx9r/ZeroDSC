@@ -73,7 +73,7 @@ Describe RawConfigDocument {
         }
         It '.ResourceConfigs has two items' {
             $records.RawConfigDocument.ResourceConfigs.Count |
-                Should be 2            
+                Should be 2
         }
         It 'retrieve that item by index' {
             $records.RawConfigDocument.ResourceConfigs[1] |
@@ -99,8 +99,8 @@ Describe New-RawConfigDocument {
     }
     Context 'emits invalid object type' {
         It 'throws correct exception type' {
-            { 
-                New-RawConfigDocument ConfigName { @{} } 
+            {
+                New-RawConfigDocument ConfigName { @{} }
             } |
                 Should throw 'Invalid object type System.Collections.Hashtable'
         }
@@ -170,7 +170,7 @@ Describe ConvertTo-ConfigDocument {
                 Get-DscResource StubResource2B | Import-DscResource
                 StubResource2A ConfigName2A @{}
             }
-            Mock ConvertTo-ResourceConfigInfo -Verifiable { 
+            Mock ConvertTo-ResourceConfigInfo -Verifiable {
                 $o = [ResourceConfigInfo]::new()
                 $o.ConfigName = 'ConfigName2A'
                 $o.ResourceName = 'StubResource2A'
@@ -204,7 +204,7 @@ Describe ConvertTo-ConfigDocument {
     Context 'duplicate config paths' {
         $h = @{}
         It 'throws correct exception type' {
-            $h.CallSite = & {$MyInvocation}            
+            $h.CallSite = & {$MyInvocation}
             $raw = New-RawConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 StubResource2A ConfigName2A @{}
@@ -212,7 +212,7 @@ Describe ConvertTo-ConfigDocument {
             }
             try
             {
-                $raw | ConvertTo-ConfigDocument 
+                $raw | ConvertTo-ConfigDocument
             }
             catch [FormatException]
             {
@@ -233,7 +233,7 @@ Describe ConvertTo-ConfigDocument {
     Context 'duplicate Resources' {
         $h = @{}
         It 'throws correct exception type' {
-            $h.CallSite = & {$MyInvocation}            
+            $h.CallSite = & {$MyInvocation}
             $raw = New-RawConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 Get-DscResource StubResource2A | Import-DscResource
@@ -241,7 +241,7 @@ Describe ConvertTo-ConfigDocument {
             }
             try
             {
-                $raw | ConvertTo-ConfigDocument 
+                $raw | ConvertTo-ConfigDocument
             }
             catch [FormatException]
             {
@@ -260,14 +260,14 @@ Describe ConvertTo-ConfigDocument {
             $h = @{}
             Mock ConvertTo-BoundResource { throw 'mock resource binding exception message' }
             It 'throws correct exception type' {
-                $h.CallSite = & {$MyInvocation}            
+                $h.CallSite = & {$MyInvocation}
                 $raw = New-RawConfigDocument 'DocumentName' {
                     Set-Alias ResourceName New-RawResourceConfigInfo
                     ResourceName ResourceConfigName @{}
                 }
                 try
                 {
-                    $raw | ConvertTo-ConfigDocument 
+                    $raw | ConvertTo-ConfigDocument
                 }
                 catch [FormatException]
                 {

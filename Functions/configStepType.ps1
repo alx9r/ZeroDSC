@@ -33,7 +33,7 @@ class ConfigStepResult
 
 $splat = @{
     TypeName = 'ConfigStepResult'
-    DefaultDisplayPropertySet = ‘Phase’,'Verb','ResourceName','Progress' 
+    DefaultDisplayPropertySet = ‘Phase’,'Verb','ResourceName','Progress'
 }
 Update-TypeData @splat -ErrorAction SilentlyContinue
 
@@ -56,7 +56,7 @@ class ConfigStep
     }
 }
 $splat = @{
-    TypeName = 'ConfigStep' 
-    DefaultDisplayPropertySet = ‘Phase’,'Verb','ResourceName','Message' 
+    TypeName = 'ConfigStep'
+    DefaultDisplayPropertySet = ‘Phase’,'Verb','ResourceName','Message'
 }
 Update-TypeData @splat -ErrorAction SilentlyContinue

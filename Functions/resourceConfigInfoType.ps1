@@ -10,9 +10,9 @@ class ResourceConfigInfo
     [ResourceParamsBase] $Params
     [System.Management.Automation.InvocationInfo]$InvocationInfo
 
-    hidden [string] $_ResourceName = (Accessor $this { 
+    hidden [string] $_ResourceName = (Accessor $this {
         get;
-        set { 
+        set {
             param ( [string] $ResourceName )
             $ResourceName | Test-ValidResourceName -ErrorAction Stop
             $this._ResourceName = $ResourceName
@@ -21,16 +21,16 @@ class ResourceConfigInfo
 
     hidden [string] $_ConfigName = (Accessor $this {
         get;
-        set { 
+        set {
             param ( [string] $ConfigName )
             $ConfigName | Test-ValidConfigName -ErrorAction Stop
             $this._ConfigName = $ConfigName
         }
     })
 
-    [string] GetConfigPath() 
-    { 
-        return ConvertTo-ConfigPath $this.ResourceName $this.ConfigName 
+    [string] GetConfigPath()
+    {
+        return ConvertTo-ConfigPath $this.ResourceName $this.ConfigName
     }
 }
 
@@ -74,7 +74,7 @@ function ConvertTo-ResourceConfigInfo
     {
         # try to extract the resource name
         $resourceName = $InputObject.InvocationInfo.Line | Get-ResourceNameFromInvocationLine
-        
+
         # create the right object type
         if ( $resourceName -eq 'Aggregate' )
         {
@@ -94,16 +94,16 @@ function ConvertTo-ResourceConfigInfo
                 $sb = @{
                     ConfigName = { $outputObject.ConfigName = $InputObject.ConfigName }
                     ResourceName = { $outputObject.ResourceName = $resourceName }
-                    Params = { 
-                        $outputObject.Params = $InputObject.Params | 
-                            ConvertTo-ResourceParams $InputObject.ConfigName 
+                    Params = {
+                        $outputObject.Params = $InputObject.Params |
+                            ConvertTo-ResourceParams $InputObject.ConfigName
                     }
                     InvocationInfo = { $outputObject.InvocationInfo = $InputObject.InvocationInfo }
-                }.$propertyName 
+                }.$propertyName
 
                 & $sb | Out-Null
             }
-            catch 
+            catch
             {
                 throw New-Object System.FormatException(
                     @"

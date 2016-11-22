@@ -73,5 +73,5 @@ Describe 'Import-DscResource using sample configuration scriptblock' {
     It 'items includes a ResourceConfigInfo object' {
         $records.SbResults2[1].GetType() |
             Should be 'RawResourceConfigInfo'
-    }    
+    }
 }

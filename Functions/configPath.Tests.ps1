@@ -57,7 +57,7 @@ Describe Test-ValidConfigPath {
             It 'returns false' {
                 $r = 'string' | Test-ValidConfigPath
                 $r | Should be $false
-            }        
+            }
         }
         It 'returns true for empty string' {
             $r = [string]::Empty | Test-ValidConfigPath

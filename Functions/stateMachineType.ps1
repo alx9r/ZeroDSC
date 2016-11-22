@@ -10,10 +10,10 @@ class SmTransition
 class SmState
 {
     [string] $StateName
-    
+
     [System.Collections.Generic.Dictionary[string,SmTransition]]
     $TransitionList = [System.Collections.Generic.Dictionary[string,SmTransition]]::new()
-    
+
     [scriptblock[]] $EntryActions
     [scriptblock[]] $ExitActions
     [bool]  $IsDefaultState
@@ -21,14 +21,14 @@ class SmState
 
 class StateMachine
 {
-    [System.Collections.Generic.Dictionary[string,SmState]] 
+    [System.Collections.Generic.Dictionary[string,SmState]]
     $StateList = [System.Collections.Generic.Dictionary[string,SmState]]::new()
-    
-    [System.Collections.Generic.Queue[string]] 
+
+    [System.Collections.Generic.Queue[string]]
     $TriggerQueue = [System.Collections.Generic.Queue[string]]::new()
 
     [psvariable[]] $ActionArgs
-    
+
     [SmState] $CurrentState
 
     RaiseEvent ( [string] $EventName )
@@ -36,7 +36,7 @@ class StateMachine
         $this | Add-Event $EventName
     }
 
-    RunAllQueued () 
+    RunAllQueued ()
     {
         $this | Invoke-RunAllQueued
     }
@@ -306,7 +306,7 @@ function New-StateMachine
                 throw [System.ArgumentException]::new(
                     "Non-existent target state $($transition.TargetStateName) in transition $($transition.TransitionName)",
                     'Transitions'
-                )                
+                )
             }
 
             # duplicate transition

@@ -1,4 +1,4 @@
-class MofResourceInvoker : ResourceInvoker 
+class MofResourceInvoker : ResourceInvoker
 {
     [System.Collections.Generic.Dictionary`2[System.String,System.Management.Automation.CommandInfo]]
     $CommandInfo
@@ -11,8 +11,8 @@ class MofResourceInvoker : ResourceInvoker
         $this.CommandInfo = $ResourceInfo | Get-MofResourceCommands
     }
 
-    [object] Invoke ( [string] $Mode, [hashtable] $Params ) 
-    { 
+    [object] Invoke ( [string] $Mode, [hashtable] $Params )
+    {
         $splat = @{
             Mode = $Mode
             Params = $Params
@@ -76,7 +76,7 @@ function Get-MofResourceCommands
         }
 
         throw "Could not find commands for DSC resource $($DscResource.Name)."
-    }    
+    }
 }
 
 function Invoke-MofResourceCommand
@@ -98,7 +98,7 @@ function Invoke-MofResourceCommand
     {
         $commandName = "$Mode-TargetResource"
         $moduleName = $CommandInfo.$commandName.ModuleName
-        
+
         $prunedParams = Invoke-PruneParams -Params $Params -CommandInfo $CommandInfo.$commandName
 
         $result = & "$moduleName\$commandName" @prunedParams
@@ -111,13 +111,13 @@ function Invoke-MofResourceCommand
     }
 }
 
-function Invoke-PruneParams 
+function Invoke-PruneParams
 {
     param
     (
         [hashtable]
         $Params,
-        
+
         [System.Management.Automation.CommandInfo]
         $CommandInfo
     )

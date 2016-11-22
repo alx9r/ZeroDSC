@@ -9,7 +9,7 @@ class RawConfigDocument
     [System.Collections.Generic.List[RawResourceConfigInfo]]
     $ResourceConfigs = (New-Object System.Collections.Generic.List[RawResourceConfigInfo])
 
-    RawConfigDocument([string] $name) 
+    RawConfigDocument([string] $name)
     {
         $this.Name = $name
     }
@@ -33,7 +33,7 @@ class ConfigDocument
     $Resources = [System.Collections.Generic.Dictionary[System.String,BoundResourceBase]]::new()
 }
 
-function New-RawConfigDocument 
+function New-RawConfigDocument
 {
     [CmdletBinding()]
     param
@@ -45,13 +45,13 @@ function New-RawConfigDocument
         [scriptblock]
         $ScriptBlock
     )
-    process 
+    process
     {
         $items = & (Get-Module ZeroDsc).NewBoundScriptBlock($ScriptBlock)
         $ConfigDocument = [RawConfigDocument]::new($Name)
         foreach ( $item in $items )
         {
-            if 
+            if
             (
                 $item -isnot [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] -and
                 $item -isnot [RawResourceConfigInfo]
@@ -93,7 +93,7 @@ function ConvertTo-ConfigDocument
             {
                 throw New-Object System.FormatException(
                     "Duplicate resource named $($resource.Name)"
-                )  
+                )
             }
 
             $resources.($resource.Name) = $resource
@@ -104,7 +104,7 @@ function ConvertTo-ConfigDocument
         {
             # create the structured object from the raw configuration
             $config = $rawConfig | ConvertTo-ResourceConfigInfo
-            
+
             # compose the ConfigPath
             $configPath = $config.GetConfigPath()
 
@@ -116,7 +116,7 @@ function ConvertTo-ConfigDocument
 Duplicate ConfigPath $configPath
 $($config.InvocationInfo.PositionMessage)
 "@
-                )                
+                )
             }
 
             try

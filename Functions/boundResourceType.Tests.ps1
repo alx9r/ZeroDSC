@@ -27,7 +27,7 @@ Describe 'Test Environment' {
         $records.AggregateConfigInfo =  & (Get-Module ZeroDsc).NewBoundScriptBlock({
             Set-Alias Aggregate New-RawResourceConfigInfo
             Aggregate AggregateConfigName @{}
-        }) | 
+        }) |
             ConvertTo-ResourceConfigInfo
     }
 }

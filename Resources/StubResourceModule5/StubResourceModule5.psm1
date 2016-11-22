@@ -9,7 +9,7 @@ class StubResource5
     $Mode
 
     [void] Set() { $this.WasSet = $true }
-    [bool] Test() 
+    [bool] Test()
     {
         switch ( $this.Mode )
         {

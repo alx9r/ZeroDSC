@@ -1,4 +1,4 @@
-function Test-ValidConfigPath 
+function Test-ValidConfigPath
 {
     [CmdletBinding()]
     param
@@ -33,7 +33,7 @@ function ConvertTo-ConfigPath
         [ValidateNotNullOrEmpty()]
         [string]
         $ResourceName,
-        
+
         [Parameter(Mandatory = $true,
                    ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({$_ | Test-ValidConfigName})]
@@ -46,7 +46,7 @@ function ConvertTo-ConfigPath
         return "[$ResourceName]$ConfigName"
     }
 }
-function Get-ConfigPathPart 
+function Get-ConfigPathPart
 {
     [CmdletBinding()]
     param

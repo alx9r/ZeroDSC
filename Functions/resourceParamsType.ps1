@@ -49,7 +49,7 @@ function ConvertTo-ResourceParams
     (
         [string]
         $ResourceName,
-        
+
         [Parameter(ValueFromPipeline = $true)]
         [hashtable]
         $Params
@@ -67,12 +67,12 @@ function ConvertTo-ResourceParams
         }
 
         # assign from Params hashtable entries to object properties
-        foreach 
-        ( 
+        foreach
+        (
             $propertyName in (
-                $outputObject | 
-                    gm -MemberType *Property | 
-                    ? {$_.Name -notlike '_*' } | 
+                $outputObject |
+                    gm -MemberType *Property |
+                    ? {$_.Name -notlike '_*' } |
                     % Name
             )
         )
