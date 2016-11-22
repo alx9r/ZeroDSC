@@ -1,6 +1,6 @@
 class ClassResourceInvoker : ResourceInvoker
 {
-    $ResourceObject
+    hidden $ResourceObject
 
     ClassResourceInvoker(
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]

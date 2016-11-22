@@ -1,6 +1,6 @@
 class MofResourceInvoker : ResourceInvoker
 {
-    [System.Collections.Generic.Dictionary`2[System.String,System.Management.Automation.CommandInfo]]
+    hidden [System.Collections.Generic.Dictionary`2[System.String,System.Management.Automation.CommandInfo]]
     $CommandInfo
 
     MofResourceInvoker(

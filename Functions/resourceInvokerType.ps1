@@ -1,6 +1,22 @@
 class ResourceInvoker
 {
-    [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
+    hidden $_Name = (Accessor $this {
+        get { $this.ResourceInfo.Name }
+    })
+
+    hidden $_ModuleName = (Accessor $this {
+        get { $this.ResourceInfo.ModuleName }
+    })
+
+    hidden $_Version = (Accessor $this {
+        get { $this.ResourceInfo.Version }
+    })
+
+    hidden $_Properties = (Accessor $this {
+        get { $this.ResourceInfo.Properties }
+    })
+
+    hidden [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
     $ResourceInfo
 
     ResourceInvoker(
@@ -17,6 +33,12 @@ class ResourceInvoker
         return $this | Invoke-ResourceCommand $Mode $Params
     }
 }
+
+$splat = @{
+    TypeName = 'ResourceInvoker'
+    DefaultDisplayPropertySet = 'Name','ModuleName','Version','Properties'
+}
+Update-TypeData @splat -ErrorAction SilentlyContinue
 
 function New-ResourceInvoker
 {
