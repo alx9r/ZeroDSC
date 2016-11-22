@@ -9,15 +9,11 @@ Describe 'Test Environment' {
 Describe 'ConfigInstructions Public API' {
     $h = @{}
     It 'create test document' {
-        $h.doc = New-RawConfigDocument Name {
+        $h.Instructions = ConfigInstructions Name {
             Get-DscResource StubResource5 | Import-DscResource
             StubResource5 'a' @{ Mode = 'Normal' ; DependsOn = '[StubResource5]b' }
             StubResource5 'b' @{ Mode = 'Normal' }
-        } |
-            ConvertTo-ConfigDocument
-    }
-    It 'New-' {
-        $h.Instructions = $h.doc | New-ConfigInstructions
+        }
     }
     Context 'foreach without invokation (1)' {
         $i = 0

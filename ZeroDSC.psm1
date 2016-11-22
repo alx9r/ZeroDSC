@@ -32,9 +32,7 @@ else
     # the list of module members to export by default
     Export-ModuleMember -Function @(
         'Import-DscResource'
-        'New-RawConfigDocument'
-        'ConvertTo-ConfigDocument'
-        'New-ConfigInstructions'
+        'ConfigInstructions'
         'Invoke-ConfigStep'
 
         'New-ResourceInvoker'
