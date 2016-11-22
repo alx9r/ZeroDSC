@@ -10,7 +10,7 @@ ModuleVersion = '0.1.0'
 GUID = '64410c3c-434f-4ce7-b9c2-3a056f0a1831'
 
 # Author of this module
-# Author = ''
+Author = 'alx9r'
 
 # Company or vendor of this module
 # CompanyName = ''
