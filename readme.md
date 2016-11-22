@@ -83,7 +83,7 @@ The operation of the ZeroDSC configuration engine is deliberately transparent an
 
 :heavy_check_mark: configuration instructions implements `IEnumerable<ConfigStep>`
 
-:white_large_square: clean up public API
+:heavy_check_mark:  clean up public API
 
 :white_large_square: log engine activity to the verbose stream
 
