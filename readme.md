@@ -24,6 +24,8 @@ The operation of the ZeroDSC configuration engine is deliberately transparent an
 
 ## Comparison
 
+ZeroDSC is intended as a complement to, not a replacement for, the LCM.  The table below is meant to highlight their differences.
+
 :white_check_mark: = already implemented
 
 :white_large_square: = on the ZeroDSC roadmap
