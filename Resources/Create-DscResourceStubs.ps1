@@ -6,3 +6,7 @@ $BoolParam = New-xDscResourceProperty -Name BoolParam -Type Boolean -Attribute W
 
 New-xDscResource –Name StubResource1A -FriendlyName StubResource1AFriendlyName –Property $StringParam1,$StringParam2,$BoolParam –Path $PSScriptRoot –ModuleName StubResourceModule1
 New-xDscResource –Name StubResource1B -FriendlyName StubResource1BFriendlyName –Property $StringParam1,$StringParam2,$BoolParam –Path $PSScriptRoot –ModuleName StubResourceModule1
+
+$Mode = New-xDscResourceProperty -Name Mode -Type String -Attribute Key -ValidateSet 'already set','incorrigible','normal'
+
+New-xDscResource -Name StubResource6 -FriendlyName StubResource6FriendlyName -Property $Mode

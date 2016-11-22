@@ -11,7 +11,7 @@ class ClassResourceInvoker : ResourceInvoker
             New-ClassResourceObject
     }
 
-    [object] Invoke ( [string] $Mode, [hashtable] $Params )
+    hidden [object] _Invoke ( [string] $Mode, [hashtable] $Params )
     {
         $splat = @{
             Mode = $Mode

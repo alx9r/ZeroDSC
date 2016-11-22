@@ -11,7 +11,7 @@ class MofResourceInvoker : ResourceInvoker
         $this.CommandInfo = $ResourceInfo | Get-MofResourceCommands
     }
 
-    [object] Invoke ( [string] $Mode, [hashtable] $Params )
+    hidden [object] _Invoke ( [string] $Mode, [hashtable] $Params )
     {
         $splat = @{
             Mode = $Mode

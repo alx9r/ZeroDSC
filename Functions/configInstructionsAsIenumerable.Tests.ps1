@@ -1,4 +1,4 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
 
 Describe 'Test Environment' {
     It 'add the test stubs to PSModulePath' {
@@ -6,7 +6,7 @@ Describe 'Test Environment' {
     }
 }
 
-Describe 'ConfigInstructions as iEnumerable' {
+Describe 'ConfigInstructions Public API' {
     $h = @{}
     It 'create test document' {
         $h.doc = New-RawConfigDocument Name {

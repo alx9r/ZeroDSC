@@ -11,6 +11,11 @@ class ResourceInvoker
         $this.ResourceInfo = $ResourceInfo
         Import-Module $this.ResourceInfo.Path
     }
+
+    [object] Invoke ( [string] $Mode, [hashtable] $Params )
+    {
+        return $this | Invoke-ResourceCommand $Mode $Params
+    }
 }
 
 function New-ResourceInvoker
@@ -35,5 +40,28 @@ function New-ResourceInvoker
         throw New-Object System.ArgumentException(
             'Could not identify resource type.','ResourceName'
         )
+    }
+}
+
+function Invoke-ResourceCommand
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 1)]
+        [ValidateSet('Get','Set','Test')]
+        $Mode,
+
+        [Parameter(Position = 2)]
+        [hashtable]
+        $Params,
+
+        [Parameter(ValueFromPipeline = $true)]
+        [ResourceInvoker]
+        $InputObject
+    )
+    process
+    {
+        $InputObject._Invoke($Mode,$Params)
     }
 }

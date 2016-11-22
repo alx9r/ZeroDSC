@@ -38,5 +38,6 @@ else
         'Invoke-ConfigStep'
 
         'New-ResourceInvoker'
+        'Invoke-ResourceCommand'
     )
 }
