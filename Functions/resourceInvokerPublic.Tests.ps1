@@ -7,15 +7,16 @@ Describe 'Test Environment' {
 }
 
 Describe 'Resource Invoker Public API' {
-    $h = @{}
-    foreach ( $resourceValues in @(
-            @('Class','StubResource5'),
-            @('MOF','StubResource6' )
-        )
-    )
+    $tests = @{
+        'Class Resource' = 'StubResource5'
+        'MOF Resource' = 'StubResource6'
+        'Class Resource invokes other functions' = 'StubResource7'
+    }
+    foreach ( $testName in $tests.Keys )
     {
-        $type,$resourceName = $resourceValues
-        Context "$type resource" {
+        $resourceName = $tests.$testName
+        Context $testName {
+            $h = @{}
             It 'New-ResourceInvoker' {
                 $h.DSCResourceInfo = Get-DscResource $resourceName
                 $h.Invoker = $h.DSCResourceInfo | New-ResourceInvoker
