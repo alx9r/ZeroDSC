@@ -17,7 +17,8 @@ Describe 'Resource Invoker Public API' {
         $type,$resourceName = $resourceValues
         Context "$type resource" {
             It 'New-ResourceInvoker' {
-                $h.Invoker = Get-DscResource $resourceName| New-ResourceInvoker
+                $h.DSCResourceInfo = Get-DscResource $resourceName
+                $h.Invoker = $h.DSCResourceInfo | New-ResourceInvoker
             }
             It 'Invoke-ResourceCommand' {
                 $r = $h.Invoker | Invoke-ResourceCommand Test @{ Mode = 'normal' }
