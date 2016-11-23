@@ -379,6 +379,7 @@ Describe 'Invoke-ConfigStep' {
                     $h.StepResult.Message | Should match $verb
                     $h.StepResult.Message | Should match ($nodeKey | ConvertTo-RegexEscapedString)
                     $h.StepResult.Message | Should match 'Complete'
+                    $h.StepResult.Message | Should match $phase
                 }
                 It "result is $result" {
                     $h.StepResult.Result | Should be $result
