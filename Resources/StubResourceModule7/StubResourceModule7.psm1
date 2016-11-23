@@ -5,7 +5,7 @@ class StubResource7
     [string]
     $StringParam
 
-    [void] Set() 
+    [void] Set()
     {
         Invoke-Something
     }
@@ -15,7 +15,7 @@ class StubResource7
         return $false
     }
 
-    [StubResource7] Get() 
+    [StubResource7] Get()
     {
         Invoke-Something
         return $this

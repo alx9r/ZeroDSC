@@ -73,9 +73,11 @@ Describe 'Style rules' {
 
     $files = @(
         Get-ChildItem $moduleRoot -Include *.ps1,*.psm1
-        Get-ChildItem $moduleRoot\Functions -Include *.ps1,*.psm1 -Recurse
-        Get-ChildItem $moduleRoot\EnvironmentTests -Include *.ps1,*.psm1 -Recurse
-        Get-ChildItem $moduleRoot\Resources -Include *.ps1,*.psm1 -Recurse
+        "$moduleRoot\Functions",
+        "$moduleRoot\EnvironmentTests",
+        "$moduleRoot\Resources",
+        "$moduleRoot\DSCResources" |
+            % { Get-ChildItem $_ -Include *.ps1,*.psm1 -Recurse }
     )
 
     It 'Source files contain no trailing whitespace' {

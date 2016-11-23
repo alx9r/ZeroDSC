@@ -111,8 +111,8 @@ Describe 'TestStub Resource Public API' {
                 if ( $exception )
                 {
                     It "$verb- throws" {
-                        { 
-                            $h.Invoker.Invoke($verb,$params) 
+                        {
+                            $h.Invoker.Invoke($verb,$params)
                         } |
                             Should throw
                     }
