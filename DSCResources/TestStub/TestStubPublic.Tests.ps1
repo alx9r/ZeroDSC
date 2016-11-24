@@ -9,32 +9,40 @@ Describe 'TestStub Resource Public API' {
         $h.Invoker = $h.DSCResource | New-ResourceInvoker
     }
     It 'Get-' {
-        $r = $h.Invoker.Invoke('Get',@{Mode = 'normal'})
-        $r.Mode | Should be 'normal'
+        $r = $h.Invoker.Invoke('Get',@{Key = 'a'})
+        $r.Key | Should be 'a'
     }
     Context 'reset clears state' {
         It 'starts out false' {
-            $r = $h.Invoker.Invoke('Test', @{Mode = 'normal'} )
+            $r = $h.Invoker.Invoke('Test', @{Key = 'a'} )
             $r | Should be $false
         }
         It 'Set-' {
-            $r = $h.Invoker.Invoke('Set', @{Mode = 'normal'} )
+            $r = $h.Invoker.Invoke('Set', @{Key = 'a'} )
         }
         It 'becomes true' {
-            $r = $h.Invoker.Invoke('Test', @{Mode = 'normal'} )
+            $r = $h.Invoker.Invoke('Test', @{Key = 'a'} )
             $r | Should be $true
         }
-        It 'reset' {
-            $h.Invoker.Invoke('Set', @{Mode = 'reset'} )
+        It 'setup second key same way' {
+            $h.Invoker.Invoke('Set', @{Key = 'b'} )
+            $h.Invoker.Invoke('Test', @{Key = 'b'} ) | Should be $true
         }
-        It 'is false agains' {
-            $r = $h.Invoker.Invoke('Test', @{Mode = 'normal'} )
+        It 'reset first key' {
+            $h.Invoker.Invoke('Set', @{Key = 'a'; Mode = 'reset'} )
+        }
+        It 'first key is false agains' {
+            $r = $h.Invoker.Invoke('Test', @{Key = 'a'} )
             $r | Should be $false
+        }
+        It 'second key remains true' {
+            $r = $h.Invoker.Invoke('Test', @{Key = 'b'} )
+            $r | Should be $true
         }
     }
     $tests = [ordered]@{
         'normal (1)' = @{
-            Params = @{ Mode = 'normal' }
+            Params = @{ Key = 'a' }
             Values = @(
                 #  Verb  | Result
                 @( 'Test', $false ),
@@ -43,7 +51,7 @@ Describe 'TestStub Resource Public API' {
             )
         }
         'normal (2)' = @{
-            Params = @{ Mode = 'normal' }
+            Params = @{ Key = 'a' }
             Values = @(
                 #  Verb  | Result
                 @( 'Test', $false ),
@@ -52,7 +60,7 @@ Describe 'TestStub Resource Public API' {
             )
         }
         'already set' = @{
-            Params = @{ Mode = 'already set' }
+            Params = @{ Key = 'a'; Mode = 'already set' }
             Values = @(
                 # Verb | Result
                 @( 'Test', $true ),
@@ -61,7 +69,7 @@ Describe 'TestStub Resource Public API' {
             )
         }
         'incorrigible' = @{
-            Params = @{ Mode = 'incorrigible' }
+            Params = @{ Key = 'a'; Mode = 'incorrigible' }
             Values = @(
                 # Verb | Result
                 @( 'Test', $false ),
@@ -70,7 +78,7 @@ Describe 'TestStub Resource Public API' {
             )
         }
         'throw on set' = @{
-            Params = @{ Mode = 'normal'; ThrowOnSet = 'always' }
+            Params = @{ Key = 'a'; ThrowOnSet = 'always' }
             Values = @(
                 # Verb | Result | Exception
                 @( 'Test', $false ),
@@ -79,7 +87,7 @@ Describe 'TestStub Resource Public API' {
             )
         }
         'throw on test' = @{
-            Params = @{ Mode = 'normal'; ThrowOnTest = 'always' }
+            Params = @{ Key = 'a'; ThrowOnTest = 'always' }
             Values = @(
                 # Verb | Result | Exception
                 @( 'Test', $null, $true ),
@@ -88,7 +96,7 @@ Describe 'TestStub Resource Public API' {
             )
         }
         'throw on test after set' = @{
-            Params = @{ Mode = 'normal'; ThrowOnTest = 'after set' }
+            Params = @{ Key = 'a'; ThrowOnTest = 'after set' }
             Values = @(
                 # Verb | Result | Exception
                 @( 'Test', $false ),
@@ -102,7 +110,7 @@ Describe 'TestStub Resource Public API' {
         $params = $tests.$testName.Params
         Context $testName {
             It 'reset' {
-                $h.Invoker.Invoke('Set', @{Mode = 'reset'} )
+                $h.Invoker.Invoke('Set', @{Key = 'a'; Mode = 'reset'} )
             }
             foreach ( $values in $tests.$testName.Values )
             {
