@@ -6,7 +6,7 @@ Describe 'Test Environment' {
     }
 }
 
-Describe 'ConfigInstructions Public API' {
+Describe 'ConfigInstructions Public API - foreach' {
     $h = @{}
     It 'create test document' {
         $h.Instructions = ConfigInstructions Name {
@@ -49,5 +49,44 @@ Describe 'ConfigInstructions Public API' {
             $i++
         }
         $i | Should be 6
+    }
+}
+
+Describe 'ConfigInstructions Public API - Pipeline' {
+    $h = @{}
+    $document = {
+        Get-DscResource TestStub ZeroDsc | Import-DscResource
+
+        TestStub a @{ Key = 'a'}
+        TestStub b @{ Key = 'b'; Mode = 'incorrigible' }
+        TestStub c @{ Key = 'c'; DependsOn = '[TestStub]b' }
+    }
+    It 'create instructions' {
+        $h.Instructions = ConfigInstructions Name $document
+        $h.Instructions.Count | Should be 1
+        $h.Instructions.GetType() | Should be 'ConfigInstructions'
+    }
+    It 'enumerate directly from ConfigInstructions' {
+        $r = ConfigInstructions Name $document |
+            % { $_ }
+        $r.Count | Should be 3
+        $r[0].GetType() | Should be 'ConfigStep'
+    }
+    It 'invoke only Pretest' {
+        $r = $h.Instructions |
+            ? { $_.Phase -eq 'Pretest' } |
+            Invoke-ConfigStep
+        $r[0].Phase | Should be 'Pretest'
+        $r[0].GetType() | Should be 'ConfigStepResult'
+        $r.Count | Should be 3
+    }
+    It 'invoke all steps, show only failures' {
+        $r = $h.Instructions |
+            Invoke-ConfigStep |
+            ? { $_.Progress -eq 'failed' }
+        $r.Count | Should be 1
+        $r.Phase | Should be 'Configure'
+        $r.Verb | Should be 'Test'
+        $r.ResourceName | Should be '[TestStub]b'
     }
 }

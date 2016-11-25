@@ -1,12 +1,7 @@
-class _ConfigInstructions : System.Collections.IEnumerable {
-    [System.Collections.IEnumerator] GetEnumerator () {
-        return [_ConfigInstructionEnumerator]::new()
-    }
-}
-class ConfigInstructions : _ConfigInstructions,System.Collections.Generic.IEnumerable[ConfigStep]{
+class ConfigInstructions : System.Collections.IEnumerable {
     [ConfigDocument] $ConfigDocument
 
-    [System.Collections.Generic.IEnumerator[ConfigStep]] GetEnumerator ()
+    [System.Collections.IEnumerator] GetEnumerator ()
     {
         return [ConfigInstructionEnumerator]::new($this.ConfigDocument)
     }
@@ -14,22 +9,6 @@ class ConfigInstructions : _ConfigInstructions,System.Collections.Generic.IEnume
     ConfigInstructions ( [ConfigDocument] $ConfigDocument )
     {
         $this.ConfigDocument = $ConfigDocument
-    }
-}
-
-function New-ConfigInstructions
-{
-    [CmdletBinding()]
-    [OutputType([ConfigInstructions])]
-    param
-    (
-        [parameter(ValueFromPipeline = $true)]
-        [ConfigDocument]
-        $ConfigDocument
-    )
-    process
-    {
-        ,[ConfigInstructions]::new($ConfigDocument)
     }
 }
 
@@ -53,7 +32,7 @@ enum Event
     SetComplete
 }
 
-class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
+class ConfigInstructionEnumerator : System.Collections.IEnumerator {
     [System.Collections.Generic.Dictionary[string,ProgressNode]]
     $Nodes
 
@@ -63,7 +42,7 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
 
     [ConfigStep] $CurrentStep
 
-    _ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument )
+    ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument )
     {
         $this.Nodes = $ConfigDocument.Resources | New-ProgressNodes
         $this.NodeEnumerator = $this.Nodes.GetEnumerator()
@@ -125,14 +104,9 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
         $this.StateMachine = New-ConfigStateMachine $testNode $moveNext $reset $variables
     }
 
-    [object] _get_Current()
+    [object] get_Current()
     {
         return Get-CurrentConfigStep -InputObject $this
-    }
-
-    [object] get_Current ()
-    {
-        return $this._get_Current()
     }
 
     [bool] MoveNext ()
@@ -150,13 +124,19 @@ class _ConfigInstructionEnumerator : System.Collections.IEnumerator {
     Dispose () {}
 }
 
-class ConfigInstructionEnumerator : _ConfigInstructionEnumerator,System.Collections.Generic.IEnumerator[ConfigStep]
+function New-ConfigInstructions
 {
-    ConfigInstructionEnumerator ( [ConfigDocument] $ConfigDocument ) : base( $ConfigDocument ) {}
-
-    [ConfigStep] get_Current ()
+    [CmdletBinding()]
+    [OutputType([ConfigInstructions])]
+    param
+    (
+        [parameter(ValueFromPipeline = $true)]
+        [ConfigDocument]
+        $ConfigDocument
+    )
+    process
     {
-        return ([ConfigInstructionEnumerator]$this)._get_Current()
+        ,[ConfigInstructions]::new($ConfigDocument)
     }
 }
 
