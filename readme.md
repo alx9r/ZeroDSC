@@ -14,6 +14,12 @@ ZeroDSC directly invokes existing PowerShell DSC resources without any dependenc
 
 The operation of the ZeroDSC configuration engine is deliberately transparent and interactive.  Fine-grained observation and troubleshooting of the ZeroDSC configuration progress is possible with minimal effort.  ZeroDSC supports end-to-end debugger access and streamlined invocation from Pester.   
 
+## New to ZeroDSC?
+
+If you are new to ZeroDSC and would like to learn more, I recommend reviewing the [getting started][] documentation.
+
+[getting started]: Docs\getting-started
+
 ## Uses
 
 * development and testing of DSC resources

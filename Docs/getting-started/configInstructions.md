@@ -1,4 +1,4 @@
-## ConfigInstructions
+## Using the ConfigInstructions Command
 
 The ZeroDSC command `ConfigInstructions` is used to generate new instructions from ZeroDSC configuration documents.  Instructions can be piped directly to `Invoke-ConfigStep` to apply the configuration.  The ZeroDSC engine ensures that the `Set` and `Test` steps are invoked for the resources in the correct order and only as necessary.
 
