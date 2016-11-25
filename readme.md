@@ -46,6 +46,7 @@ ZeroDSC is intended as a complement to, not a replacement for, the LCM.  The tab
 | works with ZeroDSC configuration documents                       | :white_check_mark: |                    |
 | works with traditional PowerShell configuration documents        |                    | :white_check_mark: |
 | allows configuration documents with cyclic dependencies          | :white_check_mark: | <sup>[c](#CyclicDependency)</sup>    |
+| supports complex custom dependency logic                         | :white_large_square: |                    |
 | **Privileges, Credentials, Remoting**                            |                    |                    |
 | invoke resources without requiring privileged user               | :white_check_mark: |                    |
 | invoke resources as current user without certificates            | :white_check_mark: |                    |
@@ -92,6 +93,8 @@ ZeroDSC is intended as a complement to, not a replacement for, the LCM.  The tab
 :heavy_check_mark: configuration instructions implements `IEnumerable<ConfigStep>`
 
 :heavy_check_mark:  clean up public API
+
+:white_large_square: special aggregate resource for more complex dependency logic
 
 :white_large_square: log engine activity to the verbose stream
 
