@@ -8,7 +8,7 @@
 
 # ZeroDSC
 
-ZeroDSC is a lightweight native PowerShell implementation of a [desired state configuration (DSC)](https://msdn.microsoft.com/en-us/powershell/dsc/overview) configuration engine.
+ZeroDSC is a lightweight native PowerShell implementation of a [desired state configuration (DSC)](https://msdn.microsoft.com/en-us/powershell/dsc/overview) engine.
 
 ZeroDSC directly invokes existing PowerShell DSC resources without any dependence on the [local configuration manager (LCM)](https://msdn.microsoft.com/en-us/powershell/dsc/metaconfig).  ZeroDSC uses a declarative configuration document format that looks similar to traditional LCM-invoked configurations.  Configuration documents and resources are interpreted and invoked in a single PowerShell session.  No intermediate files, encryption certificates, or additional processes, modules, or packages are required for ZeroDSC to work.  This makes ZeroDSC suitable for bootstrapping more elaborate configuration management strategies.
 
@@ -18,7 +18,7 @@ The operation of the ZeroDSC configuration engine is deliberately transparent an
 
 If you are new to ZeroDSC and would like to learn more, I recommend reviewing the [getting started][] documentation.
 
-[getting started]: Docs\getting-started
+[getting started]: Docs/getting-started
 
 ## Uses
 
