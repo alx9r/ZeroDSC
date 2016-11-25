@@ -70,7 +70,7 @@ Each step is invoked by piping it to `Invoke-ConfigStep`.  `Invoke-ConfigStep` e
      Configure  Set [Registry]Date     Pending
      Configure Test [Registry]Date    Complete
 
-We can see information about the results of each test were output to the console.  From that output we can see that ZeroDSC started by *Pretest*ing each of the configurations.  The progress "Pending" for the first three steps indicates that the application of none of those configurations is complete yet.  ZeroDSC then enters the *Configure* phase and invokes `Set` and `Test` for `[Registry]MyKey`.  That configuration is mentioned last in our document but it is configured first because the other two configurations depend on it.  The word "Complete" in the line
+The results of each test was output to the console.  From that output we can see that ZeroDSC started by *Pretest*ing each of the configurations.  The progress "Pending" for the first three steps indicates that the application of none of those configurations is complete yet.  ZeroDSC then enters the *Configure* phase and invokes `Set` and `Test` for `[Registry]MyKey`.  That configuration is mentioned last in our document but it is configured first because the other two configurations depend on it.  The word "Complete" in the line
 
      Configure Test [Registry]MyKey   Complete
 
@@ -78,7 +78,7 @@ marks the first configuration that ZeroDSC successfully applied.  ZeroDSC then i
 
 ### Re-Applying the Configuration
 
-Configurations applied using ZeroDSC are designed to be idempotent and `Set` is only invoked for a configuration if it is not already completely applied.  This means that invoking the configuration steps a second time or many times is safe:
+Configurations applied using ZeroDSC are designed to be idempotent and `Set` is only invoked for a resource if it is not already completely applied.  This means that invoking the configuration steps a second time or many times is safe:
 
     PS C:\> $instructions | Invoke-ConfigStep
     
