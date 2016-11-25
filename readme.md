@@ -78,6 +78,8 @@ ZeroDSC is intended as a complement to, not a replacement for, the LCM.  The tab
 
 ## Roadmap
 
+:white_large_square: = *on the ZeroDSC roadmap* :heavy_check_mark: = *already implemented*
+
 :heavy_check_mark: Invoker for class-based resources
 
 :heavy_check_mark: Invoker for MOF-based resources
