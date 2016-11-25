@@ -546,7 +546,7 @@ Describe 'ConfigInstructionsEnumerator.Reset()' {
     It 'New-' {
         $h.e = $h.doc | New-ConfigInstructionEnumerator
     }
-    $results = New-Object System.Collections.Queue
+    $results = [System.Collections.Queue]::new()
     Context 'Invoke all steps and collect data before Reset' {
         foreach ( $step in $h.e )
         {

@@ -78,11 +78,11 @@ function ConvertTo-ResourceConfigInfo
         # create the right object type
         if ( $resourceName -eq 'Aggregate' )
         {
-            $outputObject = New-Object AggregateConfigInfo
+            $outputObject = [AggregateConfigInfo]::new()
         }
         else
         {
-            $outputObject = New-Object ResourceConfigInfo
+            $outputObject = [ResourceConfigInfo]::new()
         }
 
         # Process and assign the properties such that the call site of an
@@ -105,7 +105,7 @@ function ConvertTo-ResourceConfigInfo
             }
             catch
             {
-                throw New-Object System.FormatException(
+                throw [System.FormatException]::new(
                     @"
 $propertyName Error
 $($InputObject.InvocationInfo.PositionMessage)

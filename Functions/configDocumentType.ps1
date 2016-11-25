@@ -4,10 +4,10 @@ class RawConfigDocument
     $Name
 
     [System.Collections.Generic.List[Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]
-    $DscResources = (New-Object System.Collections.Generic.List[Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo])
+    $DscResources = [System.Collections.Generic.List[Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]::new()
 
     [System.Collections.Generic.List[RawResourceConfigInfo]]
-    $ResourceConfigs = (New-Object System.Collections.Generic.List[RawResourceConfigInfo])
+    $ResourceConfigs = [System.Collections.Generic.List[RawResourceConfigInfo]]::new()
 
     RawConfigDocument([string] $name)
     {
@@ -85,13 +85,13 @@ function ConvertTo-ConfigDocument
         $outputObject.Name = $InputObject.Name
 
         # put the resources into a temporary dictionary
-        $resources = New-Object 'System.Collections.Generic.Dictionary`2[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]'
+        $resources = [System.Collections.Generic.Dictionary[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]::new()
         foreach ( $resource in $InputObject.DscResources )
         {
             # check for duplicate resource names
             if ( $resources.ContainsKey( $resource.Name ) )
             {
-                throw New-Object System.FormatException(
+                throw [System.FormatException]::new(
                     "Duplicate resource named $($resource.Name)"
                 )
             }
@@ -111,7 +111,7 @@ function ConvertTo-ConfigDocument
             # check for duplicate config path
             if ( $outputObject.Resources.ContainsKey($configPath) )
             {
-                throw New-Object System.FormatException(
+                throw [System.FormatException]::new(
                     @"
 Duplicate ConfigPath $configPath
 $($config.InvocationInfo.PositionMessage)
@@ -126,7 +126,7 @@ $($config.InvocationInfo.PositionMessage)
             }
             catch
             {
-                throw New-Object System.FormatException(
+                throw [System.FormatException]::new(
                     @"
 Error binding Config $configPath to resource $($config.ResourceName)
 $($config.InvocationInfo.PositionMessage)

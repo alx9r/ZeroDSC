@@ -36,7 +36,7 @@ function ConvertTo-BoundResource
             -not $Resource
         )
         {
-            throw New-Object System.ArgumentException(
+            throw [System.ArgumentException]::new(
                 'Resource argument is missing',
                 'Resource'
             )
@@ -48,7 +48,7 @@ function ConvertTo-BoundResource
             $Resource
         )
         {
-            throw New-Object System.ArgumentException(
+            throw [System.ArgumentException]::new(
                 'Resource argument was provided for aggregate Config',
                 'Resource'
             )

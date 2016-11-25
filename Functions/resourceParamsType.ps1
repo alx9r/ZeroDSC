@@ -95,7 +95,7 @@ function ConvertTo-ResourceParams
             {
                 if ( $null -eq $outputObject.$propertyName )
                 {
-                    throw New-Object System.ArgumentException(
+                    throw [System.ArgumentException]::new(
                         "Params is missing mandatory entry $propertyName",
                         'Params'
                     )

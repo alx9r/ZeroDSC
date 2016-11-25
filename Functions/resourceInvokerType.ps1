@@ -59,7 +59,7 @@ function New-ResourceInvoker
             return [ClassResourceInvoker]::new( $DscResource )
         }
 
-        throw New-Object System.ArgumentException(
+        throw [System.ArgumentException]::new(
             'Could not identify resource type.','ResourceName'
         )
     }

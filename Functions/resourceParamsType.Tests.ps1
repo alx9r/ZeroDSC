@@ -9,7 +9,7 @@ Describe 'ResourceParams' {
         Context 'PSRunAsCredential' {
             It 'accepts assignment of a credential' {
                 $password = 'bogus' | ConvertTo-SecureString -AsPlainText -Force
-                $cred = New-Object pscredential('bogus', $password)
+                $cred = [pscredential]::new('bogus', $password)
                 $o = [ResourceParams]::new()
                 $o.PSRunAsCredential = $cred
                 $o.PSRunAsCredential.UserName | Should be 'bogus'
@@ -103,7 +103,7 @@ Describe ConvertTo-ResourceParams {
     Context 'known hashtable entries become properties (ResourceParams)' {
         foreach ( $property in @(
                 @('ComputerName','computer.domain.com'),
-                @('PSRunAsCredential',(New-Object pscredential('bogus', ('bogus' | ConvertTo-SecureString -AsPlainText -Force)))),
+                @('PSRunAsCredential',([pscredential]::new('bogus', ('bogus' | ConvertTo-SecureString -AsPlainText -Force)))),
                 @('DependsOn','[ResourceName]ConfigName')
             )
         )
