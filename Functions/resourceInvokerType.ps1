@@ -42,6 +42,7 @@ Update-TypeData @splat -ErrorAction SilentlyContinue
 
 function New-ResourceInvoker
 {
+    [CmdletBinding()]
     param
     (
         [Parameter(ValueFromPipeline = $true)]

@@ -291,7 +291,6 @@ function Get-CurrentConfigStep
 function Invoke-ConfigStep
 {
     [CmdletBinding()]
-    [OutputType([ConfigStepResult])]
     param
     (
         [Parameter(ValueFromPipeline = $true)]
