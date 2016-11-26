@@ -45,7 +45,9 @@ Describe 'ConfigInstructions Public API - foreach' {
             It "invoke $($step.Message)" {
                 $h.r = $step.Invoke()
             }
-            It "result is successful" {}
+            It "progress is not failure" {
+                $h.r.Progress | Should not be 'Failed'
+            }
             $i++
         }
         $i | Should be 6
