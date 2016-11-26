@@ -75,10 +75,6 @@ ZeroDSC is intended as a complement to, not a replacement for, the LCM.  The tab
 
 (<a name="CyclicDependency">c</a>) *The [connect issue "Solve the 'Circular DependsOn Exists' Error"](https://connect.microsoft.com/PowerShell/feedback/details/1045031) seems to indicate that cyclic DependsOn references are not allowed when using the LCM.  ZeroDSC uses a multi-pass configuration algorithm that does not have this limitation.*
 
-## Prerequisites
-
-* WMF 5.0 or higher   
-
 ## Roadmap
 
 :white_large_square: = *on the ZeroDSC roadmap* :heavy_check_mark: = *already implemented*
