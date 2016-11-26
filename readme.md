@@ -6,6 +6,9 @@
   </tr>
 </table>
 
+[![Build status](https://ci.appveyor.com/api/projects/status/vruprne94hi4e7ro/branch/master?svg=true&passingText=master%20-%20OK)](https://ci.appveyor.com/project/alx9r/zerodsc/branch/master)
+
+
 # ZeroDSC
 
 ZeroDSC is a lightweight native PowerShell implementation of a [desired state configuration (DSC)](https://msdn.microsoft.com/en-us/powershell/dsc/overview) engine.
