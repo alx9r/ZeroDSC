@@ -8,31 +8,31 @@ An instructions object is obtained by passing a ZeroDSC configuration document t
 
 ```PowerShell
 $document = {
-Get-DscResource Registry | Import-DscResource
+	Get-DscResource Registry | Import-DscResource
 
-Registry Version @{
-    Key = 'HKEY_CURRENT_USER\MyApplication'
-    ValueName = 'Version'
-    ValueType = 'String'
-    ValueData = '1.0.0'
-    Ensure = 'Present'
-    DependsOn = '[Registry]MyKey'
-}
+	Registry Version @{
+	    Key = 'HKEY_CURRENT_USER\MyApplication'
+	    ValueName = 'Version'
+	    ValueType = 'String'
+	    ValueData = '1.0.0'
+	    Ensure = 'Present'
+	    DependsOn = '[Registry]MyKey'
+	}
 
-Registry Date @{
-    Key = 'HKEY_CURRENT_USER\MyApplication'
-    ValueName = 'Date'
-    ValueType = 'String'
-    ValueData = [string](Get-Date)
-    Ensure = 'Present'
-    DependsOn = '[Registry]MyKey'    
-}
+	Registry Date @{
+	    Key = 'HKEY_CURRENT_USER\MyApplication'
+	    ValueName = 'Date'
+	    ValueType = 'String'
+	    ValueData = [string](Get-Date)
+	    Ensure = 'Present'
+	    DependsOn = '[Registry]MyKey'    
+	}
 
-Registry MyKey @{
-    Key = 'HKEY_CURRENT_USER\MyApplication'
-    ValueName = [string]::Empty
-    Ensure = 'Present'
-}
+	Registry MyKey @{
+	    Key = 'HKEY_CURRENT_USER\MyApplication'
+	    ValueName = [string]::Empty
+	    Ensure = 'Present'
+	}
 }
 ```
 
