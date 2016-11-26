@@ -7,13 +7,28 @@ All of the ZeroDSC documentation assumes that you have a working familiarity wit
 
 ZeroDSC is a PowerShell module.  To install simply put the root folder (the one named "ZeroDSC") in one of the `$PSModulePath` folders on your system.  For testing and development I recommend installing ZeroDSC to the user modules folder (usually `$Env:UserProfile\Documents\WindowsPowerShell\Modules`). 
 
+### Prerequisites
+
+ZeroDSC requires WMF 5.0.
+
 ### Obtaining ZeroDSC
 
 To obtain ZeroDSC I recommend cloning [the repository](https://github.com/alx9r/ZeroDSC.git) to your computer and checking out the [latest release](https://github.com/alx9r/ZeroDSC/releases/latest) using `git clone` and `git checkout`.  Remember, ZeroDSC is still in experimental stages, so expect to pull changes to fix issues.
 
-### Prerequisites
+### Confirming Installation
 
-ZeroDSC requires WMF 5.0.
+To confirm that ZeroDSC is installed on your computer, invoke the following commands:
+
+```
+C:\> Import-Module ZeroDSC
+C:\> Get-Module ZeroDSC
+
+ModuleType Version    Name             ExportedCommands
+---------- -------    ----             ----------------
+Script     0.1.0      ZeroDSC          {ConfigInstruction...
+```
+
+You should see some details about the ZeroDSC module output by the `Get-Module` command as shown above.
 
 ## Introductory Topics
 
