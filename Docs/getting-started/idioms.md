@@ -1,6 +1,6 @@
 ## ZeroDSC Idioms
 
-ZeroDSC is designed to be invoked using idiomatic PowerShell.  The following is a collection of some common ZeroDSC idioms.  Note that some of the latter idioms depend on variables declared in former idioms.
+ZeroDSC is designed to be invoked using idiomatic PowerShell.  The following is a collection of some common ZeroDSC idioms.  Note that some of the latter idioms depend on the values of variables assigned in former idioms.
 
 **Assign a Configuration Document to a Variable**
 
@@ -27,7 +27,7 @@ Configuration instructions implement `IEnumerable<ConfigStep>` so they automatic
 
 **Assign the Instructions to a Variable**
 
-Because of the way PowerShell's pipeline handles `IEnumerable`, code is simplified by assigning instructions objects to a variable before using it.
+The instructions object is immutable and can be safely reused to produce steps.  Assigning the instructions to a variable allows for re-use.
 
 	$instructions = ConfigInstructions Name $document
 
