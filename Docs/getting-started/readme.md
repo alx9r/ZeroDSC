@@ -15,6 +15,8 @@ ZeroDSC requires WMF 5.0.
 
 To obtain ZeroDSC I recommend cloning [the repository](https://github.com/alx9r/ZeroDSC.git) to your computer and checking out the [latest release](https://github.com/alx9r/ZeroDSC/releases/latest) using `git clone` and `git checkout`.  Remember, ZeroDSC is still in experimental stages, so expect to pull changes to fix issues.
 
+Alternatively you can download then extract an archive of the module from [this page](https://github.com/alx9r/ZeroDSC/releases/latest).
+
 ### Confirming Installation
 
 To confirm that ZeroDSC is installed on your computer, invoke the following commands:
