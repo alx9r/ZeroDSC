@@ -6,13 +6,15 @@ ZeroDSC is designed to be invoked using idiomatic PowerShell.  The following is 
 
 Configuration documents are just scriptblocks, so they can be assigned to variables for future use.
 
-	$document = {
-	    Get-DscResource TestStub ZeroDsc | Import-DscResource
-	
-	    TestStub a @{ Key = 'a'}
-	    TestStub b @{ Key = 'b'; Mode = 'incorrigible' }
-	    TestStub c @{ Key = 'c'; DependsOn = '[TestStub]b' }
-	}
+```PowerShell
+$document = {
+    Get-DscResource TestStub ZeroDsc | Import-DscResource
+
+    TestStub a @{ Key = 'a'}
+    TestStub b @{ Key = 'b'; Mode = 'incorrigible' }
+    TestStub c @{ Key = 'c'; DependsOn = '[TestStub]b' }
+}
+```
 
 **Output Configuration Steps to the Console**
 
@@ -29,7 +31,9 @@ Configuration instructions implement `IEnumerable<ConfigStep>` so they automatic
 
 The instructions object is immutable and can be safely reused to produce steps.  Assigning the instructions to a variable allows for re-use.
 
-	$instructions = ConfigInstructions Name $document
+```PowerShell
+$instructions = ConfigInstructions Name $document
+```
 
 **Invoke Only the Pretest Phase, Show Results**
 

@@ -6,37 +6,41 @@ The ZeroDSC command `ConfigInstructions` is used to generate new instructions fr
 
 An instructions object is obtained by passing a ZeroDSC configuration document to the command `ConfigInstructions`.  Consider the following configuration document which describes some registry entries in `HKEY_CURRENT_USER`:
 
-    $document = {
-        Get-DscResource Registry | Import-DscResource
-    
-        Registry Version @{
-            Key = 'HKEY_CURRENT_USER\MyApplication'
-            ValueName = 'Version'
-            ValueType = 'String'
-            ValueData = '1.0.0'
-            Ensure = 'Present'
-            DependsOn = '[Registry]MyKey'
-        }
-    
-        Registry Date @{
-            Key = 'HKEY_CURRENT_USER\MyApplication'
-            ValueName = 'Date'
-            ValueType = 'String'
-            ValueData = [string](Get-Date)
-            Ensure = 'Present'
-            DependsOn = '[Registry]MyKey'    
-        }
-    
-        Registry MyKey @{
-            Key = 'HKEY_CURRENT_USER\MyApplication'
-            ValueName = [string]::Empty
-            Ensure = 'Present'
-        }
-    }
+```PowerShell
+$document = {
+	Get-DscResource Registry | Import-DscResource
+
+	Registry Version @{
+	    Key = 'HKEY_CURRENT_USER\MyApplication'
+	    ValueName = 'Version'
+	    ValueType = 'String'
+	    ValueData = '1.0.0'
+	    Ensure = 'Present'
+	    DependsOn = '[Registry]MyKey'
+	}
+
+	Registry Date @{
+	    Key = 'HKEY_CURRENT_USER\MyApplication'
+	    ValueName = 'Date'
+	    ValueType = 'String'
+	    ValueData = [string](Get-Date)
+	    Ensure = 'Present'
+	    DependsOn = '[Registry]MyKey'    
+	}
+
+	Registry MyKey @{
+	    Key = 'HKEY_CURRENT_USER\MyApplication'
+	    ValueName = [string]::Empty
+	    Ensure = 'Present'
+	}
+}
+```
 
 The following creates an instructions object from the configuration document:
 
-    $instructions = ConfigInstructions MyConfiguration $document
+```PowerShell
+$instructions = ConfigInstructions MyConfiguration $document
+```
 
 ### Exploring the Instructions Object
 
@@ -45,6 +49,7 @@ The instructions object emits configuration steps corresponding to each step tha
 To allow easy retrieval of configuration steps from instructions objects, instructions objects implement `IEnumerable`.  PowerShell streamlines interaction with `IEnumerable` objects so they can be efficiently used in `foreach()` statements and as sources in the pipeline.  `IEnumerable` also allows us to output step objects easily to the console:
 
     PS C:\> $instructions
+
       Phase Verb ResourceName      Message                        
       ----- ---- ------------      -------                        
     Pretest Test [Registry]Version Test resource [Registry]Version
@@ -58,6 +63,7 @@ ZeroDSC expects each step object to be invoked before the next is emitted.  If t
 Each step is invoked by piping it to `Invoke-ConfigStep`.  `Invoke-ConfigStep` emits a results object for each step that was invoked.  Piping an instructions object to `Invoke-ConfigStep` invokes each step in the order determined by ZeroDSC:
 
     PS C:\> $instructions | Invoke-ConfigStep
+    
          Phase Verb ResourceName      Progress
          ----- ---- ------------      --------
        Pretest Test [Registry]Version  Pending
@@ -105,6 +111,7 @@ A change to the registry entries can be simulated by removing Date:
 Running the instructions again corrects that change:
 
     PS C:\> $instructions | Invoke-ConfigStep
+    
          Phase Verb ResourceName      Progress
          ----- ---- ------------      --------
        Pretest Test [Registry]Version Complete
