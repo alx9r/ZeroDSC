@@ -6,14 +6,16 @@ ZeroDSC is designed to integrate with the [Pester testing framework](https://git
 
 Exceptions can occur when ZeroDSC processes a configuration document.  Invoking `ConfigDocument` inside a Pester `It{}` block ensures that such an exception is surfaced:
 
-    Describe 'ConfigInstructions exception' {
-        It 'get instructions' {
-            ConfigInstructions Name {
-                Get-DscResource TestStub ZeroDSC | Import-DscResource
-                TestStub Name { Key = 'a' }
-            }
+```PowerShell
+Describe 'ConfigInstructions exception' {
+    It 'get instructions' {
+        ConfigInstructions Name {
+            Get-DscResource TestStub ZeroDSC | Import-DscResource
+            TestStub Name { Key = 'a' }
         }
     }
+}
+```
 
 Running that test outputs
 
@@ -31,23 +33,27 @@ Running that test outputs
 
 followed by a long stack trace that.  Looking at the output we immediately see that the error occurred during the "get instructions" test.  We can see that a `PSInvalidCastException` occurred on line 5.  Line 5 reads
 
-    TestStub Name { Key = 'a' }
+```PowerShell
+TestStub Name { Key = 'a' }
+```
 
 and by careful inspection we can see that the `@` was forgotten when passing the parameters hashtable so PowerShell interpreted it as a scriptblock.
 
 To demonstrate successful output, here is a corrected test:
 
-    $document = {
-        Get-DscResource TestStub ZeroDSC | Import-DscResource
-        TestStub Name @{ Key = 'a' }
-    }
+```PowerShell
+$document = {
+    Get-DscResource TestStub ZeroDSC | Import-DscResource
+    TestStub Name @{ Key = 'a' }
+}
 
-    Describe 'ConfigInstructions success' {
-        $h = @{}
-        It 'get instructions' {
-            $h.Instructions = ConfigInstructions Name $document
-        }
+Describe 'ConfigInstructions success' {
+    $h = @{}
+    It 'get instructions' {
+        $h.Instructions = ConfigInstructions Name $document
     }
+}
+```
 
 Running this test outputs
 
@@ -61,22 +67,24 @@ and we have successfully created our instructions and are ready to build on that
 
 Each configuration step can be converted into Pester output by iterating through the instructions with a `foreach()` loop.  Here is the same test we have been working with, with another configuration added to the document, and iterating over the steps:
 
-    $document = {
-        Get-DscResource TestStub ZeroDSC | Import-DscResource
-        TestStub a @{ Key = 'a' }
-        TestStub b @{ Key = 'b' }
-    }
+```PowerShell
+$document = {
+    Get-DscResource TestStub ZeroDSC | Import-DscResource
+    TestStub a @{ Key = 'a' }
+    TestStub b @{ Key = 'b' }
+}
 
-    Describe 'Config Step Iteration' {
-        $h = @{}
-        It 'get instructions' {
-            $h.Instructions = ConfigInstructions Name $document
-        }
-        foreach ( $step in $h.Instructions )
-        {
-            It $step.Message {}
-        }
+Describe 'Config Step Iteration' {
+    $h = @{}
+    It 'get instructions' {
+        $h.Instructions = ConfigInstructions Name $document
     }
+    foreach ( $step in $h.Instructions )
+    {
+        It $step.Message {}
+    }
+}
+```
 
 Running that test outputs the following:
 
@@ -91,36 +99,38 @@ The `[?]` is Pester's way of indicating that the test is pending.  That is becau
 
 Now that we have an `It{}` block for each step, each step can be invoked and the result tested:
 
-    $document = {
-        Get-DscResource TestStub ZeroDSC | Import-DscResource
-        TestStub a @{ Key = 'a' }
-        TestStub b @{ Key = 'b' }
-    }
+```PowerShell
+$document = {
+    Get-DscResource TestStub ZeroDSC | Import-DscResource
+    TestStub a @{ Key = 'a' }
+    TestStub b @{ Key = 'b' }
+}
 
-    Describe 'Config Step Invocation and Result Testing' {
-        $h = @{}
-        It 'get instructions' {
-            $h.Instructions = ConfigInstructions Name $document
-        }
-        foreach ( $step in $h.Instructions )
-        {
-            It $step.Message {
-                $result = $step | Invoke-ConfigStep
-                $result.Progress | Should not be 'Failed'
-            }
+Describe 'Config Step Invocation and Result Testing' {
+    $h = @{}
+    It 'get instructions' {
+        $h.Instructions = ConfigInstructions Name $document
+    }
+    foreach ( $step in $h.Instructions )
+    {
+        It $step.Message {
+            $result = $step | Invoke-ConfigStep
+            $result.Progress | Should not be 'Failed'
         }
     }
+}
+```
 
 Running this the first time outputs the following:
 
-	Describing Config Step Invocation and Result Testing
-	 [+] get instructions 391ms
-	 [+] Pretest: Test resource [TestStub]a 272ms
-	 [+] Pretest: Test resource [TestStub]b 41ms
-	 [+] Configure: Set resource [TestStub]a 46ms
-	 [+] Configure: Test resource [TestStub]a 48ms
-	 [+] Configure: Set resource [TestStub]b 50ms
-	 [+] Configure: Test resource [TestStub]b 22ms
+    Describing Config Step Invocation and Result Testing
+     [+] get instructions 391ms
+     [+] Pretest: Test resource [TestStub]a 272ms
+     [+] Pretest: Test resource [TestStub]b 41ms
+     [+] Configure: Set resource [TestStub]a 46ms
+     [+] Configure: Test resource [TestStub]a 48ms
+     [+] Configure: Set resource [TestStub]b 50ms
+     [+] Configure: Test resource [TestStub]b 22ms
 
 Because each step is invoked, ZeroDSC proceeds to the *Configure* phase after the *Pretest*s are invoked.  That is why there are six steps where there were only two before.  Running the test again yields the following:
 
@@ -133,11 +143,13 @@ We are back to two steps again because configurations `[TestStub]a` and `[TestSt
 
 If we change the document so that `Test`ing our resources always returns false
 
-    $document = {
-        Get-DscResource TestStub ZeroDSC | Import-DscResource
-        TestStub a @{ Key = 'a'; Mode = 'incorrigible' }
-        TestStub b @{ Key = 'b'; Mode = 'incorrigible' }
-    }
+```PowerShell
+$document = {
+    Get-DscResource TestStub ZeroDSC | Import-DscResource
+    TestStub a @{ Key = 'a'; Mode = 'incorrigible' }
+    TestStub b @{ Key = 'b'; Mode = 'incorrigible' }
+}
+```
 
 and run the test again
 
