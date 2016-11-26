@@ -41,30 +41,8 @@ Describe "manifest and changelog" {
         $script:changelogVersion -as [Version]  | Should Not BeNullOrEmpty
     }
 
-    if ( (Get-Content $changeLogPath)[0] -ne '## Unreleased' )
-    {
-        It "then changelog and manifest versions are the same" {
-            $script:changelogVersion -as [Version] | Should be ( $script:manifest.Version -as [Version] )
-        }
-
-        if (Get-Command git.exe -ErrorAction SilentlyContinue) {
-            $script:tagVersion = $null
-            It "is tagged with a valid version" {
-                $thisCommit = git.exe log --decorate --oneline HEAD~1..HEAD
-
-                $mask = 'tag:\s*(?<version>[0-9]*\.[0-9]*\.[0-9]*)'
-                $script:tagVersion = [regex]::Match($thisCommit,$mask).Groups['version'].Value
-
-                $script:tagVersion                  | Should Not BeNullOrEmpty
-                $script:tagVersion -as [Version]    | Should Not BeNullOrEmpty
-            }
-
-            It "all versions are the same" {
-                $script:changelogVersion -as [Version] | Should be ( $script:manifest.Version -as [Version] )
-                $script:manifest.Version -as [Version] | Should be ( $script:tagVersion -as [Version] )
-            }
-
-        }
+    It "changelog and manifest versions are the same" {
+        $script:changelogVersion -as [Version] | Should be ( $script:manifest.Version -as [Version] )
     }
 }
 

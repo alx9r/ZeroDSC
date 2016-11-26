@@ -1,5 +1,3 @@
-## Unreleased
-
 ## 0.1.0
  - created invokers for class- and MOF-based resources
  - interprets minimal configuration document format
