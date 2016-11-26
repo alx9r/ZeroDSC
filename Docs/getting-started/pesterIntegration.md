@@ -19,9 +19,13 @@ Running that test outputs
 
     Describing ConfigInstructions exception
      [-] get instructions 360ms
-       PSInvalidCastException: Cannot convert the " Key = 'a' " value of type "System.Management.Automation.ScriptBlock" to type "System.Collections.Hashtable".
-       ArgumentTransformationMetadataException: Cannot convert the " Key = 'a' " value of type "System.Management.Automation.ScriptBlock" to type "System.Collections.Hashtable".
-       ParameterBindingArgumentTransformationException: Cannot process argument transformation on parameter 'Params'. Cannot convert the " Key = 'a' " value of type "System.Management.Automation.ScriptBlock" to type "System.Collections.Hashtable".
+       PSInvalidCastException: Cannot convert the " Key = 'a' " value of type "System.Management.Automation.ScriptBloc
+       k" to type "System.Collections.Hashtable".
+       ArgumentTransformationMetadataException: Cannot convert the " Key = 'a' " value of type "System.Management.Auto
+       mation.ScriptBlock" to type "System.Collections.Hashtable".
+       ParameterBindingArgumentTransformationException: Cannot process argument transformation on parameter 'Params'. 
+       Cannot convert the " Key = 'a' " value of type "System.Management.Automation.ScriptBlock" to type "System.Colle
+       ctions.Hashtable".
        at <ScriptBlock>, C:\temp\configInstructionsException.ps1: line 5
  	...
 
@@ -125,7 +129,7 @@ Because each step is invoked, ZeroDSC proceeds to the *Configure* phase after th
      [+] Pretest: Test resource [TestStub]a 81ms
      [+] Pretest: Test resource [TestStub]b 24ms
 
-We are back to two steps again because configuration `[TestStub]a` and `[TestStub]b` have already been applied.
+We are back to two steps again because configurations `[TestStub]a` and `[TestStub]b` have already been applied.
 
 If we change the document so that `Test`ing our resources always returns false
 
