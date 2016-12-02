@@ -19,9 +19,12 @@ The operation of the ZeroDSC configuration engine is deliberately transparent an
 
 ## New to ZeroDSC?
 
-If you are new to ZeroDSC and would like to learn more, I recommend reviewing the [getting started][] documentation.
+If you are new to ZeroDSC and would like to learn more, I recommend reviewing the [getting started][] documentation.  
+
+You can find [more documentation here][].
 
 [getting started]: Docs/getting-started
+[more documentation here]: Docs
 
 ## Uses
 

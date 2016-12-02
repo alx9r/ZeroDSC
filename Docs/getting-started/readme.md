@@ -39,12 +39,16 @@ For an introduction to ZeroDSC, I recommend reading the following topics.  They 
  * [Using the ConfigInstructions Command][]
  * [ZeroDSC Idioms][]
  * [Pester Integration][]
- * [Resource Invokers][]
 
 [Using the ConfigInstructions Command]: configInstructions.md
 [ZeroDSC Idioms]: idioms.md
 [Pester Integration]: pesterIntegration.md
-[Resource Invokers]: resourceInvoker.md
+
+## More Documentation
+
+More documentation for ZeroDSC can be found [here][].
+
+[here]: ..
 
 ## Feedback
 
