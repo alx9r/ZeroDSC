@@ -1,5 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
 
+InModuleScope ZeroDsc {
 Describe Test-ValidAggregateTypeName {
     Context 'valid TypeNames' {
         It 'returns exactly one boolean' {
@@ -58,4 +59,5 @@ Describe Test-ValidAggregateTest {
             }
         }
     }
+}
 }

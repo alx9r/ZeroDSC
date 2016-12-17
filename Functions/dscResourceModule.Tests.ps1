@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 . "$($PSCommandPath | Split-Path -Parent)\..\Add-StubsToModulePath.ps1"
 
@@ -24,28 +26,27 @@ Describe 'Import- and Remove-DscResource' {
         $r = $records.'StubResource4A_1.0' | Import-DscResource
         $r | Should be $records.'StubResource4A_1.0'
     }
-    InModuleScope ZeroDsc {
-        It 'correctly creates an alias' {
-            Get-Alias StubResource4A -ea Stop
-        }
-        It 'the alias is for New-ResourceConfigInfo' {
-            $r = Get-Alias StubResource4A -ea Stop
-            $r.ResolvedCommandName | Should be New-RawResourceConfigInfo
-        }
+    It 'correctly creates an alias' {
+        $records.'StubResource4A_1.0' | Import-DscResource
+        Get-Alias StubResource4A -ea Stop
+    }
+    It 'the alias is for New-ResourceConfigInfo' {
+        $records.'StubResource4A_1.0' | Import-DscResource
+        $r = Get-Alias StubResource4A -ea Stop
+        $r.ResolvedCommandName | Should be New-RawResourceConfigInfo
     }
     It 'but not outside modulescope' {
         { Get-Alias StubResource4A -ea Stop } |
             Should throw 'cannot find a matching alias'
     }
     It 'Remove- returns nothing' {
-        $r = $records.'StubResource4A_1.0' | Remove-DscResource
+        $records.'StubResource4A_1.0' | Import-DscResource
+        $r = $records.'StubResource4A_1.0' | Remove-DscResource -ea Stop
         $r | Should beNullOrEmpty
     }
-    InModuleScope ZeroDsc {
-        It 'correctly removes the alias'  {
-            { Get-Alias StubResource4A -ea Stop } |
-                Should throw 'cannot find a matching alias'
-        }
+    It 'correctly removes the alias'  {
+        { Get-Alias StubResource4A -ea Stop } |
+            Should throw 'cannot find a matching alias'
     }
 }
 Describe 'Import-DscResource using sample configuration scriptblock' {
@@ -74,4 +75,5 @@ Describe 'Import-DscResource using sample configuration scriptblock' {
         $records.SbResults2[1].GetType() |
             Should be 'RawResourceConfigInfo'
     }
+}
 }

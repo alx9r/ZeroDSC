@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 Describe New-RawResourceConfigInfo {
     It 'creates new object' {
@@ -75,22 +77,20 @@ Describe ConvertTo-ResourceConfigInfo {
             ConvertTo-ResourceConfigInfo
         $r.GetConfigPath() | Should be '[New-RawResourceConfigInfo]ConfigName'
     }
-    InModuleScope ZeroDsc {
-        foreach ( $typeName in 'ResourceParams','AggregateParams' )
-        {
-            Context "Params [$typeName]" {
-                $object = New-Object $typeName
-                Mock ConvertTo-ResourceParams -Verifiable {$object}
-                It 'it correctly assigns result of ConvertTo-ResourceParams to Params' {
-                    $r = New-RawResourceConfigInfo ConfigName @{p=1} |
-                        ConvertTo-ResourceConfigInfo
-                    $r.Params | Should be $object
-                }
-                It 'correctly invokes ConvertTo-ResourceParams' {
-                    Assert-MockCalled ConvertTo-ResourceParams -Times 1 {
-                        $ResourceName -eq 'ConfigName' -and
-                        $Params.p -eq 1
-                    }
+    foreach ( $typeName in 'ResourceParams','AggregateParams' )
+    {
+        Context "Params [$typeName]" {
+            $object = New-Object $typeName
+            Mock ConvertTo-ResourceParams -Verifiable {$object}
+            It 'it correctly assigns result of ConvertTo-ResourceParams to Params' {
+                $r = New-RawResourceConfigInfo ConfigName @{p=1} |
+                    ConvertTo-ResourceConfigInfo
+                $r.Params | Should be $object
+            }
+            It 'correctly invokes ConvertTo-ResourceParams' {
+                Assert-MockCalled ConvertTo-ResourceParams -Times 1 {
+                    $ResourceName -eq 'ConfigName' -and
+                    $Params.p -eq 1
                 }
             }
         }
@@ -149,32 +149,30 @@ Describe ConvertTo-ResourceConfigInfo {
         }
     }
     Context 'bad Params' {
-        InModuleScope ZeroDsc {
-            $h = @{}
-            Mock ConvertTo-ResourceParams {throw 'mock exception'}
-            It 'throws correct exception type' {
-                try
-                {
-                    $h.CallSite = & {$MyInvocation}
-                    New-RawResourceConfigInfo 'ConfigName' |
-                        ConvertTo-ResourceConfigInfo
-                }
-                catch [FormatException]
-                {
-                    $threw = $true
-                    $h.Exception =$_
-                }
-                $threw | Should be $true
+        $h = @{}
+        Mock ConvertTo-ResourceParams {throw 'mock exception'}
+        It 'throws correct exception type' {
+            try
+            {
+                $h.CallSite = & {$MyInvocation}
+                New-RawResourceConfigInfo 'ConfigName' |
+                    ConvertTo-ResourceConfigInfo
             }
-            It 'the exception show the filename of the offending parameter' {
-                $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+            catch [FormatException]
+            {
+                $threw = $true
+                $h.Exception =$_
             }
-            It 'the exception shows the line number of the offending call' {
-                $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+1)"
-            }
-            It 'the exception contains an informative message' {
-                $h.Exception.ToString() | Should match 'mock exception'
-            }
+            $threw | Should be $true
+        }
+        It 'the exception show the filename of the offending parameter' {
+            $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+        }
+        It 'the exception shows the line number of the offending call' {
+            $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+1)"
+        }
+        It 'the exception contains an informative message' {
+            $h.Exception.ToString() | Should match 'mock exception'
         }
     }
 }
@@ -204,4 +202,5 @@ Describe Get-ResourceNameFromInvocationLine {
             }
         }
     }
+}
 }

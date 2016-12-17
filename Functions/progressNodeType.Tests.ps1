@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 Describe 'Test Environment' {
     It 'add the test stubs to PSModulePath' {
@@ -49,4 +51,5 @@ InModuleScope ZeroDsc {
             }
         }
     }
+}
 }

@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 Describe 'Test Environment' {
     It 'add the test stubs to PSModulePath' {
@@ -69,4 +71,5 @@ Describe Test-DependenciesMet {
         It 'returns false when great-grandparent incomplete' {}
         It 'returns true when all great-grandparents are incomplete' {}
     }
+}
 }

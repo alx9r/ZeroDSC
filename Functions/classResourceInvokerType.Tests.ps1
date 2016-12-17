@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 $records = @{}
 $stubResourceNames = @(
@@ -87,4 +89,5 @@ Describe Invoke-ClassResourceCommand {
             $r.BoolParam | Should be $true
         }
     }
+}
 }

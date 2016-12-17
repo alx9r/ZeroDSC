@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 $records = @{}
 $stubResourceNames = @(
@@ -33,4 +35,5 @@ Describe New-ResourceInvoker {
         $r = $records.StubResource2A.DscResource | New-ResourceInvoker
         $r.GetType().Name | Should be 'ClassResourceInvoker'
     }
+}
 }

@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 $records = @{}
 $stubResourceNames = @(
@@ -77,28 +79,26 @@ Describe Get-MofResourceCommands {
 }
 
 Describe Invoke-MofResourceCommand {
-    InModuleScope ZeroDsc {
-        Context 'mock' {
-            $rsrc = Get-DscResource StubResource1A
-            $c = $rsrc | Get-MofResourceCommands
-            $p = @{
-                StringParam1 = 's1'
-                BoolParam = $true
-            }
-            It 'import the module' {
-                # this task is normally handled by the ResourceInvoker constructor
-                $rsrc.Path | Import-Module
-            }
-            Mock 'Test-TargetResource' -Verifiable { 'return value' }
-            It 'correctly returns value' {
-                $r = Invoke-MofResourceCommand test -Params $p -CommandInfo $c
-                $r | Should be 'return value'
-            }
-            It 'correctly invokes Test-TargetResource' {
-                Assert-MockCalled 'Test-TargetResource' -Times 1 {
-                    $StringParam1 -eq 's1' -and
-                    $BoolParam -eq $true
-                }
+    Context 'mock' {
+        $rsrc = Get-DscResource StubResource1A
+        $c = $rsrc | Get-MofResourceCommands
+        $p = @{
+            StringParam1 = 's1'
+            BoolParam = $true
+        }
+        It 'import the module' {
+            # this task is normally handled by the ResourceInvoker constructor
+            $rsrc.Path | Import-Module
+        }
+        Mock 'Test-TargetResource' -Verifiable { 'return value' }
+        It 'correctly returns value' {
+            $r = Invoke-MofResourceCommand test -Params $p -CommandInfo $c
+            $r | Should be 'return value'
+        }
+        It 'correctly invokes Test-TargetResource' {
+            Assert-MockCalled 'Test-TargetResource' -Times 1 {
+                $StringParam1 -eq 's1' -and
+                $BoolParam -eq $true
             }
         }
     }
@@ -133,4 +133,5 @@ Describe Invoke-PruneParams {
         $r.Count | Should be 1
         $r.StringParam1 | Should be 's1'
     }
+}
 }

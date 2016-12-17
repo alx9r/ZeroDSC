@@ -1,4 +1,5 @@
 Import-Module ZeroDsc -Force
+Import-Module PSDesiredStateConfiguration
 
 Describe 'Import-DscResource dynamic keyword still works' {
     It 'build configuration artifacts' {
