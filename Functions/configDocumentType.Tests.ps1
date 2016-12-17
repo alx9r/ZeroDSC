@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 $records = @{}
 
@@ -163,42 +165,40 @@ Describe ConvertTo-ConfigDocument {
         $r = New-RawConfigDocument 'DocumentName' {} | ConvertTo-ConfigDocument
         $r.Name | Should be 'DocumentName'
     }
-    InModuleScope ZeroDsc {
-        Context 'convert config info and bind to resources' {
-            $raw = New-RawConfigDocument 'DocumentName' {
-                Get-DscResource StubResource2A | Import-DscResource
-                Get-DscResource StubResource2B | Import-DscResource
-                StubResource2A ConfigName2A @{}
+    Context 'convert config info and bind to resources' {
+        $raw = New-RawConfigDocument 'DocumentName' {
+            Get-DscResource StubResource2A | Import-DscResource
+            Get-DscResource StubResource2B | Import-DscResource
+            StubResource2A ConfigName2A @{}
+        }
+        Mock ConvertTo-ResourceConfigInfo -Verifiable {
+            $o = [ResourceConfigInfo]::new()
+            $o.ConfigName = 'ConfigName2A'
+            $o.ResourceName = 'StubResource2A'
+            $o
+        }
+        Mock ConvertTo-BoundResource -Verifiable {
+            $o = [BoundResourceBase]::new()
+            $o.Config = $Config
+            $o
+        }
+        It 'correctly invokes ConvertTo-ResourceConfigInfo' {
+            $raw | ConvertTo-ConfigDocument
+            Assert-MockCalled ConvertTo-ResourceConfigInfo -Times 1 {
+                $InputObject.ConfigName -eq 'ConfigName2A'
             }
-            Mock ConvertTo-ResourceConfigInfo -Verifiable {
-                $o = [ResourceConfigInfo]::new()
-                $o.ConfigName = 'ConfigName2A'
-                $o.ResourceName = 'StubResource2A'
-                $o
+        }
+        It 'correctly passes that result and the correct resource type to ConvertTo-BoundResource' {
+            Assert-MockCalled ConvertTo-BoundResource -Times 1 {
+                $Config.ConfigName -eq 'ConfigName2A' -and
+                $Resource.Name -eq 'StubResource2A'
             }
-            Mock ConvertTo-BoundResource -Verifiable {
-                $o = [BoundResourceBase]::new()
-                $o.Config = $Config
-                $o
-            }
-            It 'correctly invokes ConvertTo-ResourceConfigInfo' {
-                $raw | ConvertTo-ConfigDocument
-                Assert-MockCalled ConvertTo-ResourceConfigInfo -Times 1 {
-                    $InputObject.ConfigName -eq 'ConfigName2A'
-                }
-            }
-            It 'correctly passes that result and the correct resource type to ConvertTo-BoundResource' {
-                Assert-MockCalled ConvertTo-BoundResource -Times 1 {
-                    $Config.ConfigName -eq 'ConfigName2A' -and
-                    $Resource.Name -eq 'StubResource2A'
-                }
-            }
-            It 'correctly adds result of ConvertTo-BoundResource to Resources' {
-                $o = $raw | ConvertTo-ConfigDocument
-                $r = $o.Resources.'[StubResource2A]ConfigName2A'
-                $r.Config.ConfigName | Should be 'ConfigName2A'
-                $r.Config.ResourceName | Should be 'StubResource2A'
-            }
+        }
+        It 'correctly adds result of ConvertTo-BoundResource to Resources' {
+            $o = $raw | ConvertTo-ConfigDocument
+            $r = $o.Resources.'[StubResource2A]ConfigName2A'
+            $r.Config.ConfigName | Should be 'ConfigName2A'
+            $r.Config.ResourceName | Should be 'StubResource2A'
         }
     }
     Context 'duplicate config paths' {
@@ -255,35 +255,33 @@ Describe ConvertTo-ConfigDocument {
             $h.Exception.ToString() | Should match 'Duplicate resource named StubResource2A'
         }
     }
-    InModuleScope ZeroDsc {
-        Context 'bad resource binding' {
-            $h = @{}
-            Mock ConvertTo-BoundResource { throw 'mock resource binding exception message' }
-            It 'throws correct exception type' {
-                $h.CallSite = & {$MyInvocation}
-                $raw = New-RawConfigDocument 'DocumentName' {
-                    Set-Alias ResourceName New-RawResourceConfigInfo
-                    ResourceName ResourceConfigName @{}
-                }
-                try
-                {
-                    $raw | ConvertTo-ConfigDocument
-                }
-                catch [FormatException]
-                {
-                    $h.Exception = $_
-                }
-                $h.Exception | Should not beNullOrEmpty
+    Context 'bad resource binding' {
+        $h = @{}
+        Mock ConvertTo-BoundResource { throw 'mock resource binding exception message' }
+        It 'throws correct exception type' {
+            $h.CallSite = & {$MyInvocation}
+            $raw = New-RawConfigDocument 'DocumentName' {
+                Set-Alias ResourceName New-RawResourceConfigInfo
+                ResourceName ResourceConfigName @{}
             }
-            It 'the exception shows the filename of the offending call' {
-                $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+            try
+            {
+                $raw | ConvertTo-ConfigDocument
             }
-            It 'the exception shows the line number of the offending call' {
-                $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+3)"
+            catch [FormatException]
+            {
+                $h.Exception = $_
             }
-            It 'the exception contains an informative message' {
-                $h.Exception.ToString() | Should match 'Error binding Config \[ResourceName\]ResourceConfigName to resource ResourceName'
-            }
+            $h.Exception | Should not beNullOrEmpty
+        }
+        It 'the exception shows the filename of the offending call' {
+            $h.Exception.ToString() | Should match ($PSCommandPath | Split-Path -Leaf)
+        }
+        It 'the exception shows the line number of the offending call' {
+            $h.Exception.ToString() | Should match ":$($h.CallSite.ScriptLineNumber+3)"
+        }
+        It 'the exception contains an informative message' {
+            $h.Exception.ToString() | Should match 'Error binding Config \[ResourceName\]ResourceConfigName to resource ResourceName'
         }
     }
     Context 'DependsOn points to non-existent resource' {
@@ -298,4 +296,5 @@ Describe ConvertTo-ConfigDocument {
         It 'the exception shows the line number of the offending call' {}
         It 'the exception contains an informative message' {}
     }
+}
 }

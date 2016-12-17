@@ -1,5 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
 
+InModuleScope ZeroDsc {
 $records = @{}
 
 Describe 'Test Environment' {
@@ -66,25 +67,23 @@ Describe 'ConvertTo-BoundResource' {
             $r.Invoker.ResourceInfo | Should be $resSplat.Resource
         }
     }
-    InModuleScope ZeroDsc {
-        Context 'invoker (mock)' {
-            $res = Get-DscResource StubResource1A
-            Mock New-ResourceInvoker -Verifiable {
-                [ResourceInvoker]::new($res)
+    Context 'invoker (mock)' {
+        $res = Get-DscResource StubResource1A
+        Mock New-ResourceInvoker -Verifiable {
+            [ResourceInvoker]::new($res)
+        }
+        It 'correctly invokes New-ResourceInvoker' {
+            $splat = @{
+                Resource = $res
+                Config = & (Get-Module ZeroDsc).NewBoundScriptBlock({
+                    Set-Alias ResourceName New-RawResourceConfigInfo
+                    ResourceName ResourceConfigName @{}
+                }) |
+                    ConvertTo-ResourceConfigInfo
             }
-            It 'correctly invokes New-ResourceInvoker' {
-                $splat = @{
-                    Resource = $res
-                    Config = & (Get-Module ZeroDsc).NewBoundScriptBlock({
-                        Set-Alias ResourceName New-RawResourceConfigInfo
-                        ResourceName ResourceConfigName @{}
-                    }) |
-                        ConvertTo-ResourceConfigInfo
-                }
-                ConvertTo-BoundResource @splat
-                Assert-MockCalled New-ResourceInvoker -Times 1 {
-                    $DscResource.ResourceType -eq 'StubResource1A'
-                }
+            ConvertTo-BoundResource @splat
+            Assert-MockCalled New-ResourceInvoker -Times 1 {
+                $DscResource.ResourceType -eq 'StubResource1A'
             }
         }
     }
@@ -123,4 +122,5 @@ Describe '.Invoke() stub' {
             }
         }
     }
+}
 }

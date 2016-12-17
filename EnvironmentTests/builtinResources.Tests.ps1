@@ -1,4 +1,5 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+Import-Module PSDesiredStateConfiguration
 
 $expectedBuiltin = @(
     'File'

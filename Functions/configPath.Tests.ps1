@@ -1,72 +1,72 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 Describe Test-ValidConfigPath {
-    InModuleScope ZeroDSC {
-        Context 'success' {
-            Mock Get-ConfigPathPart -Verifiable { $PartName }
-            Mock Test-ValidConfigName -Verifiable { $true }
-            Mock Test-ValidResourceName -Verifiable { $true }
-            It 'returns true' {
-                $r = '[ResourceName]ConfigName' | Test-ValidConfigPath -ErrorAction Stop
-                $r | Should be $true
-            }
-            It 'correctly invokes Get-ConfigPathPart ResourceName' {
-                Assert-MockCalled Get-ConfigPathPart -ParameterFilter {
-                    $String -eq '[ResourceName]ConfigName' -and
-                    $PartName -eq 'ResourceName'
-                }
-            }
-            It 'correctly invokes Get-ConfigPathPart ConfigName' {
-                Assert-MockCalled Get-ConfigPathPart -ParameterFilter {
-                    $String -eq '[ResourceName]ConfigName' -and
-                    $PartName -eq 'ConfigName'
-                }
-            }
-            It 'correctly invokes Test-ValidConfigName' {
-                Assert-MockCalled Test-ValidConfigName -ParameterFilter {
-                    $String -eq 'ConfigName'
-                }
-            }
-            It 'correctly invokes Test-ValidResourceName' {
-                Assert-MockCalled Test-ValidResourceName -ParameterFilter {
-                    $String -eq 'ResourceName'
-                }
-            }
-            It 'cascades ErrorAction Stop' {
-                Assert-MockCalled Test-ValidResourceName -ParameterFilter {
-                    $ErrorActionPreference -eq 'Stop'
-                }
-                Assert-MockCalled Test-ValidConfigName -ParameterFilter {
-                    $ErrorActionPreference -eq 'Stop'
-                }
-            }
-        }
-        Context 'fail ResourceName' {
-            Mock Get-ConfigPathPart { $PartName }
-            Mock Test-ValidConfigName { $true }
-            Mock Test-ValidResourceName { $false }
-            It 'returns false' {
-                $r = 'string' | Test-ValidConfigPath
-                $r | Should be $false
-            }
-        }
-        Context 'fail ConfigName' {
-            Mock Get-ConfigPathPart { $PartName }
-            Mock Test-ValidConfigName { $false }
-            Mock Test-ValidResourceName { $true }
-            It 'returns false' {
-                $r = 'string' | Test-ValidConfigPath
-                $r | Should be $false
-            }
-        }
-        It 'returns true for empty string' {
-            $r = [string]::Empty | Test-ValidConfigPath
+    Context 'success' {
+        Mock Get-ConfigPathPart -Verifiable { $PartName }
+        Mock Test-ValidConfigName -Verifiable { $true }
+        Mock Test-ValidResourceName -Verifiable { $true }
+        It 'returns true' {
+            $r = '[ResourceName]ConfigName' | Test-ValidConfigPath -ErrorAction Stop
             $r | Should be $true
         }
-        It 'returns true for $null' {
-            $r = $null | Test-ValidConfigPath
-            $r | Should be $true
+        It 'correctly invokes Get-ConfigPathPart ResourceName' {
+            Assert-MockCalled Get-ConfigPathPart -ParameterFilter {
+                $String -eq '[ResourceName]ConfigName' -and
+                $PartName -eq 'ResourceName'
+            }
         }
+        It 'correctly invokes Get-ConfigPathPart ConfigName' {
+            Assert-MockCalled Get-ConfigPathPart -ParameterFilter {
+                $String -eq '[ResourceName]ConfigName' -and
+                $PartName -eq 'ConfigName'
+            }
+        }
+        It 'correctly invokes Test-ValidConfigName' {
+            Assert-MockCalled Test-ValidConfigName -ParameterFilter {
+                $String -eq 'ConfigName'
+            }
+        }
+        It 'correctly invokes Test-ValidResourceName' {
+            Assert-MockCalled Test-ValidResourceName -ParameterFilter {
+                $String -eq 'ResourceName'
+            }
+        }
+        It 'cascades ErrorAction Stop' {
+            Assert-MockCalled Test-ValidResourceName -ParameterFilter {
+                $ErrorActionPreference -eq 'Stop'
+            }
+            Assert-MockCalled Test-ValidConfigName -ParameterFilter {
+                $ErrorActionPreference -eq 'Stop'
+            }
+        }
+    }
+    Context 'fail ResourceName' {
+        Mock Get-ConfigPathPart { $PartName }
+        Mock Test-ValidConfigName { $true }
+        Mock Test-ValidResourceName { $false }
+        It 'returns false' {
+            $r = 'string' | Test-ValidConfigPath
+            $r | Should be $false
+        }
+    }
+    Context 'fail ConfigName' {
+        Mock Get-ConfigPathPart { $PartName }
+        Mock Test-ValidConfigName { $false }
+        Mock Test-ValidResourceName { $true }
+        It 'returns false' {
+            $r = 'string' | Test-ValidConfigPath
+            $r | Should be $false
+        }
+    }
+    It 'returns true for empty string' {
+        $r = [string]::Empty | Test-ValidConfigPath
+        $r | Should be $true
+    }
+    It 'returns true for $null' {
+        $r = $null | Test-ValidConfigPath
+        $r | Should be $true
     }
 }
 Describe 'Test-ValidConfigPath Integration' {
@@ -146,4 +146,5 @@ Describe Test-ValidResourceName {
         { [string]::Empty | Test-ValidResourceName -ea Stop } |
             Should throw 'Null'
     }
+}
 }

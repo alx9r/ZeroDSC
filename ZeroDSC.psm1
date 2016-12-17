@@ -20,22 +20,11 @@ $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
     } |
     % { . $_.FullName }
 
+Export-ModuleMember -Function @(
+    'Import-DscResource'
+    'ConfigInstructions'
+    'Invoke-ConfigStep'
 
-if ( $args[0] -eq 'ExportAll' )
-{
-    # This option is provided to streamline testing of
-    # non-public module members.
-    Export-ModuleMember -Function * -Alias *
-}
-else
-{
-    # the list of module members to export by default
-    Export-ModuleMember -Function @(
-        'Import-DscResource'
-        'ConfigInstructions'
-        'Invoke-ConfigStep'
-
-        'New-ResourceInvoker'
-        'Invoke-ResourceCommand'
-    )
-}
+    'New-ResourceInvoker'
+    'Invoke-ResourceCommand'
+)

@@ -1,4 +1,6 @@
-Import-Module ZeroDsc -Force -Args ExportAll
+Import-Module ZeroDsc -Force
+
+InModuleScope ZeroDsc {
 
 Describe New-Transition {
     $params =  @{
@@ -630,4 +632,5 @@ Describe 'complete StateMachine' {
     It 'ends in state a' {
         $sm.CurrentState.StateName | Should be 'a'
     }
+}
 }
