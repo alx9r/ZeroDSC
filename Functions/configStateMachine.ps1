@@ -126,9 +126,12 @@ function New-ConfigStateMachine
             AtNodeComplete
             AtNodeFailed
             AtNodeSkipped
+            AtNodeException
             SetComplete
+            SetThrew
             TestCompleteSuccess
             TestCompleteFailure
+            TestThrew
             StepSkipped
         }
 
@@ -178,13 +181,14 @@ function New-ConfigStateMachine
             }
             @{
                 TransitionName = [Transition]::StartResourcePretest
-                Triggers = [Event]::AtNodeReady,[Event]::AtNodeNotReady,[Event]::AtNodeComplete
+                Triggers = [Event]::AtNodeReady,[Event]::AtNodeNotReady
                 SourceStateName = [State]::PretestDispatch
                 TargetStateName = [State]::PretestWaitForTestExternal
             }
             @{
                 TransitionName = [Transition]::EndResourcePretest
-                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure,[Event]::StepSkipped
+                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure,
+                           [Event]::StepSkipped,[Event]::TestThrew
                 SourceStateName = [State]::PretestWaitForTestExternal
                 TargetStateName = [State]::PretestDispatch
                 TransitionActions = $MoveNext
@@ -212,7 +216,7 @@ function New-ConfigStateMachine
             }
             @{
                 TransitionName = [Transition]::StartConfigureResourceTest
-                Triggers = [Event]::SetComplete
+                Triggers = [Event]::SetComplete,[Event]::SetThrew
                 SourceStateName = [State]::ConfigureWaitForSetExternal
                 TargetStateName = [State]::ConfigureWaitForTestExternal
             }
@@ -224,13 +228,15 @@ function New-ConfigStateMachine
             }
             @{
                 TransitionName = [Transition]::EndConfigureResourceFailed
-                Triggers = [Event]::TestCompleteFailure,[Event]::StepSkipped
+                Triggers = [Event]::TestCompleteFailure,[Event]::StepSkipped,[Event]::TestThrew
                 SourceStateName = [State]::ConfigureWaitForTestExternal
                 TargetStateName = [State]::ConfigureDispatch
             }
             @{
                 TransitionName = [Transition]::MoveConfigureNextResource
-                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped,[Event]::AtNodeFailed
+                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,
+                           [Event]::AtNodeSkipped,[Event]::AtNodeFailed,
+                           [Event]::AtNodeException
                 SourceStateName = [State]::ConfigureDispatch
                 TargetStateName = [State]::ConfigureDispatch
                 TransitionActions = $MoveNext
@@ -251,19 +257,22 @@ function New-ConfigStateMachine
             }
             @{
                 TransitionName = [Transition]::StartConfigureProgressResourceTest
-                Triggers = [Event]::SetComplete
+                Triggers = [Event]::SetComplete,[Event]::SetThrew
                 SourceStateName = [State]::ConfigureProgressWaitForSetExternal
                 TargetStateName = [State]::ConfigureProgressWaitForTestExternal
             }
             @{
                 TransitionName = [Transition]::EndConfigureProgressResource
-                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure,[Event]::StepSkipped
+                Triggers = [Event]::TestCompleteSuccess,[Event]::TestCompleteFailure,
+                           [Event]::StepSkipped,[Event]::TestThrew
                 SourceStateName = [State]::ConfigureProgressWaitForTestExternal
                 TargetStateName = [State]::ConfigureProgressDispatch
             }
             @{
                 TransitionName = [Transition]::MoveConfigureProgressNextResource
-                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,[Event]::AtNodeSkipped,[Event]::AtNodeFailed
+                Triggers = [Event]::AtNodeComplete,[Event]::AtNodeNotReady,
+                           [Event]::AtNodeSkipped,[Event]::AtNodeFailed,
+                           [Event]::AtNodeException
                 SourceStateName = [State]::ConfigureProgressDispatch
                 TargetStateName = [State]::ConfigureProgressDispatch
                 TransitionActions = $MoveNext

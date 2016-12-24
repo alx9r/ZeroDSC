@@ -23,13 +23,16 @@ enum Event
     AtNodeComplete
     AtNodeSkipped
     AtNodeFailed
+    AtNodeException
 
     # Test Resource
     TestCompleteSuccess
     TestCompleteFailure
+    TestThrew
 
     # Set Resource
     SetComplete
+    SetThrew
 }
 
 class ConfigInstructionEnumerator : System.Collections.IEnumerator {
@@ -80,6 +83,12 @@ class ConfigInstructionEnumerator : System.Collections.IEnumerator {
             if ( [Progress]::Failed -eq $this.NodeEnumerator.Value.Progress )
             {
                 RaiseEvent( [Event]::AtNodeFailed )
+                return
+            }
+
+            if ( [Progress]::Exception -eq $this.NodeEnumerator.Value.Progress )
+            {
+                RaiseEvent( [Event]::AtNodeException )
                 return
             }
 

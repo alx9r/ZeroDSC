@@ -4,6 +4,7 @@ enum Progress
     Complete
     Pending
     Failed
+    Exception
     Skipped
 }
 class ProgressNode {
