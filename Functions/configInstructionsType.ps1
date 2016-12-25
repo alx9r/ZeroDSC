@@ -12,29 +12,6 @@ class ConfigInstructions : System.Collections.IEnumerable {
     }
 }
 
-enum Event
-{
-    Start
-
-    # Test Node
-    AtEndOfCollection
-    AtNodeReady
-    AtNodeNotReady
-    AtNodeComplete
-    AtNodeSkipped
-    AtNodeFailed
-    AtNodeException
-
-    # Test Resource
-    TestCompleteSuccess
-    TestCompleteFailure
-    TestThrew
-
-    # Set Resource
-    SetComplete
-    SetThrew
-}
-
 class ConfigInstructionEnumerator : System.Collections.IEnumerator {
     [System.Collections.Generic.Dictionary[string,ProgressNode]]
     $Nodes
