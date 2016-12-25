@@ -91,6 +91,49 @@ $tests = [ordered]@{
             @($null,            ,'Ended')
         )
     }
+    'Exception during Pretest' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            # NodeKey           | StateName                    | Node Progress | Raise Event
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Complete',      'TestCompleteSuccess' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  'Exception',     'TestThrew' ),
+            @($null,            ,'Ended' )
+        )
+    }
+    'Exception during Configure Test' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            # NodeKey           | StateName                    | Node Progress | Raise Event
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Complete',      'TestCompleteSuccess' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', $null,           'SetComplete' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal','Exception',     'TestThrew'),
+            @($null,            ,'Ended' )
+        )
+    }
+    'Exception during Configure Set' = @{
+        ConfigDocument = {
+            Get-DscResource StubResource5 | Import-DscResource
+            StubResource5 'a' @{ Mode = 'Normal'; DependsOn = '[StubResource5]b' }
+            StubResource5 'b' @{ Mode = 'Normal' }
+        }
+        Values = @(
+            # NodeKey           | StateName                    | Node Progress | Raise Event
+            @('[StubResource5]a','PretestWaitForTestExternal',  'Complete',      'TestCompleteSuccess' ),
+            @('[StubResource5]b','PretestWaitForTestExternal',  $null,           'TestCompleteFailure' ),
+            @('[StubResource5]b','ConfigureWaitForSetExternal', 'Exception',      'SetThrew' ),
+            @('[StubResource5]b','ConfigureWaitForTestExternal','Complete',      'TestCompleteSuccess'),
+            @($null,            ,'Ended' )
+        )
+    }
     'Skip All' = @{
         ConfigDocument = {
             Get-DscResource StubResource5 | Import-DscResource
@@ -298,16 +341,18 @@ Describe 'Get-CurrentConfigStep' {
     }
 }
 
-
 Describe 'Invoke-ConfigStep' {
     $h = @{}
     Context 'arrange' {
         It 'create test document' {
             $h.doc = New-RawConfigDocument Name {
                 Get-DscResource StubResource5 | Import-DscResource
+                Get-DscResource TestStub | Import-DscResource
                 StubResource5 'a' @{ Mode = 'already set' }
                 StubResource5 'b' @{ Mode = 'normal' }
                 StubResource5 'c' @{ Mode = 'incorrigible' }
+                TestStub 'd' @{ Key = 'd'; ThrowOnTest = 'always' }
+                TestStub 'e' @{ Key = 'e'; ThrowOnSet = 'always and apply' }
             } |
                 ConvertTo-ConfigDocument
         }
@@ -321,10 +366,14 @@ Describe 'Invoke-ConfigStep' {
             @('[StubResource5]a','PretestWaitForTestExternal',          'TestCompleteSuccess',  'Pending',       'Complete',      $true,  'Test', 'PreTest' ),
             @('[StubResource5]b','PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
             @('[StubResource5]c','PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
+            @('[TestStub]d',     'PretestWaitForTestExternal',          'TestThrew',            'Pending',       'Exception',     $null,  'Test', 'PreTest' ),
+            @('[TestStub]e',     'PretestWaitForTestExternal',          'TestCompleteFailure',  'Pending',       'Pending',       $false, 'Test', 'PreTest' ),
             @('[StubResource5]b','ConfigureWaitForSetExternal',         'SetComplete',          'Pending',       'Pending',       $null,  'Set',  'Configure' ),
             @('[StubResource5]b','ConfigureWaitForTestExternal',        'TestCompleteSuccess',  'Pending',       'Complete',      $true,  'Test', 'Configure' ),
             @('[StubResource5]c','ConfigureProgressWaitForSetExternal', 'SetComplete',          'Pending',       'Pending',       $null,  'Set',  'Configure' ),
             @('[StubResource5]c','ConfigureProgressWaitForTestExternal','TestCompleteFailure',  'Pending',       'Failed',        $false, 'Test', 'Configure' ),
+            @('[TestStub]e',     'ConfigureProgressWaitForSetExternal', 'SetThrew',             'Pending',       'Exception',     $null,  'Set',  'Configure' ),
+            @('[TestStub]e',     'ConfigureProgressWaitForTestExternal','TestCompleteSuccess',  'Exception',     'Complete',      $true,  'Test', 'Configure' ),
             @($null,            ,'Ended')
         )
     )
@@ -357,12 +406,21 @@ Describe 'Invoke-ConfigStep' {
                 It 'invoked was initially false' {
                     $h.e.CurrentStep.Invoked | Should be $false
                 }
-                It 'Invoke' {
-                    $h.StepResult = $h.Step | Invoke-ConfigStep
+                $h.Remove('StepResult')
+                if ( $progressAfter -eq 'Exception' )
+                {
+                    It 'Invoke throws' {
+                        {
+                            $h.Step | Invoke-ConfigStep
+                        } |
+                            Should throw
+                    }
                 }
-                It 'returns exactly one result object' {
-                    $h.StepResult.Count | Should be 1
-                    $h.StepResult.GetType() | Should be ConfigStepResult
+                else
+                {
+                    It 'Invoke' {
+                        $h.StepResult = $h.Step | Invoke-ConfigStep
+                    }
                 }
                 It "event $eventName was raised" {
                     $h.e.StateMachine.TriggerQueue.Count | Should be 1
@@ -371,32 +429,45 @@ Describe 'Invoke-ConfigStep' {
                 It "reports progress $progressAfter" {
                     $h.e.NodeEnumerator.Value.Progress | Should be $progressAfter
                 }
-                It ".Progress is $progressAfter" {
-                    $h.StepResult.Progress | Should be $progressAfter
+                if ( $progressAfter -eq 'Exception' )
+                {
+                    It 'returns nothing' {
+                        $h.StepResult | Should beNullOrEmpty
+                    }
                 }
-                It 'invoked was set to true' {
-                    $h.e.CurrentStep.Invoked | Should be $true
-                }
-                It 'populates .Message' {
-                    $h.StepResult.Message | Should match $verb
-                    $h.StepResult.Message | Should match ($nodeKey | ConvertTo-RegexEscapedString)
-                    $h.StepResult.Message | Should match 'Complete'
-                    $h.StepResult.Message | Should match $phase
-                }
-                It "result is $result" {
-                    $h.StepResult.Result | Should be $result
-                }
-                It 'populates .Step' {
-                    $h.StepResult.Step -eq $h.Step | Should be $true
-                }
-                It 'populates .Verb' {
-                    $h.StepResult.Verb | Should be $verb
-                }
-                It 'populates .Phase' {
-                    $h.StepResult.Phase | Should be $phase
-                }
-                It 'populates .ResourceName' {
-                    $h.StepResult.ResourceName | Should be $nodeKey
+                else
+                {
+                    It 'returns exactly one result object' {
+                        $h.StepResult.Count | Should be 1
+                        $h.StepResult.GetType() | Should be ConfigStepResult
+                    }
+                    It ".Progress is $progressAfter" {
+                        $h.StepResult.Progress | Should be $progressAfter
+                    }
+                    It 'invoked was set to true' {
+                        $h.e.CurrentStep.Invoked | Should be $true
+                    }
+                    It 'populates .Message' {
+                        $h.StepResult.Message | Should match $verb
+                        $h.StepResult.Message | Should match ($nodeKey | ConvertTo-RegexEscapedString)
+                        $h.StepResult.Message | Should match 'Complete'
+                        $h.StepResult.Message | Should match $phase
+                    }
+                    It "result is $result" {
+                        $h.StepResult.Result | Should be $result
+                    }
+                    It 'populates .Step' {
+                        $h.StepResult.Step -eq $h.Step | Should be $true
+                    }
+                    It 'populates .Verb' {
+                        $h.StepResult.Verb | Should be $verb
+                    }
+                    It 'populates .Phase' {
+                        $h.StepResult.Phase | Should be $phase
+                    }
+                    It 'populates .ResourceName' {
+                        $h.StepResult.ResourceName | Should be $nodeKey
+                    }
                 }
             }
         }

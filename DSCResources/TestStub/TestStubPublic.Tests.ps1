@@ -86,6 +86,15 @@ Describe 'TestStub Resource Public API' {
                 @( 'Test', $false )
             )
         }
+        'throw and apply on set' = @{
+            Params = @{ Key = 'a'; ThrowOnSet = 'always and apply' }
+            Values = @(
+                # Verb | Result | Exception
+                @( 'Test', $false ),
+                @( 'Set', $null, $true ),
+                @( 'Test', $true )
+            )
+        }
         'throw on test' = @{
             Params = @{ Key = 'a'; ThrowOnTest = 'always' }
             Values = @(

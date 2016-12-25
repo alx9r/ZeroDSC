@@ -8,6 +8,7 @@
     'boundResourceType.ps1'
     'configDocumentType.ps1'
 
+    'eventType.ps1'
     'stateMachineType.ps1'
     'progressNodeType.ps1'
     'configStepType.ps1'
