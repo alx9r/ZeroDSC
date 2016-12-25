@@ -231,35 +231,63 @@ function Get-CurrentConfigStep
         # populate the action
         $outputObject.Action = @{
             Test = {
-                # invoke the test
-                $result = $resource.Resource.Invoke('Test')
+                try
+                {
+                    # invoke the test
+                    $result = $resource.Resource.Invoke('Test')
 
-                # raise the completion event
-                RaiseEvent(@{
-                    $false = 'TestCompleteFailure'
-                    $true = 'TestCompleteSuccess'
-                }.([bool]$result))
+                    # raise the completion event
+                    RaiseEvent(@{
+                        $false = 'TestCompleteFailure'
+                        $true = 'TestCompleteSuccess'
+                    }.([bool]$result))
 
-                # report the node's progress
-                $resource.Progress = @{
-                    Pretest = @{
-                        $false = 'Pending'
-                        $true = 'Complete'
-                    }
-                    Configure = @{
-                        $false = 'Failed'
-                        $true = 'Complete'
-                    }
-                }.$phase.([bool]$result)
+                    # report the node's progress
+                    $resource.Progress = @{
+                        Pretest = @{
+                            $false = 'Pending'
+                            $true = 'Complete'
+                        }
+                        Configure = @{
+                            $false = 'Failed'
+                            $true = 'Complete'
+                        }
+                    }.$phase.([bool]$result)
+                }
+                catch
+                {
+                    # raise the exception event
+                    RaiseEvent('TestThrew')
+
+                    # report the node's progress
+                    $resource.Progress = 'Exception'
+
+                    # re-throw the exception
+                    throw
+                }
 
                 return $result
             }
             Set = {
-                # invoke the set
-                $resource.Resource.Invoke('Set')
+                try
+                {
+                    # invoke the set
+                    $resource.Resource.Invoke('Set')
 
-                # raise the completion event
-                RaiseEvent('SetComplete')
+                    # raise the completion event
+                    RaiseEvent('SetComplete')
+                }
+                catch
+                {
+                    # raise the exception event
+                    RaiseEvent('SetThrew')
+
+                    # report the node's progress
+                    $resource.Progress = 'Exception'
+
+                    # re-throw the exception
+                    throw
+                }
             }
         }.$verb
 
@@ -290,11 +318,16 @@ function Invoke-ConfigStep
             RaiseEvent = { param($EventName) $ConfigStep.StateMachine.RaiseEvent($EventName) }
         }
 
-        # invoke the action
-        $result = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
-
-        # mark the step as invoked
-        $ConfigStep.Invoked = $true
+        try
+        {
+            # invoke the action
+            $result = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
+        }
+        finally
+        {
+            # mark the step as invoked
+            $ConfigStep.Invoked = $true
+        }
 
         # return the result object
         return New-Object ConfigStepResult -Property @{
