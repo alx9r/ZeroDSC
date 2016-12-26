@@ -58,10 +58,11 @@ function Get-MofResourceCommands
     {
         # see also ToolFoundations\EnvironmentTests\psModuleInfo.Tests.ps1
 
-        $moduleInfo = Get-Module |
-            ? { $_.Path -eq $DscResource.Path }
-
-        if ( -not $moduleInfo )
+        if ( $DscResource | Test-DscResourceModuleLoaded )
+        {
+            $moduleInfo = $DscResource | Get-DscResourceModule
+        }
+        else
         {
             $moduleInfo = Import-Module $DscResource.Path -PassThru
             $moduleInfo | Remove-Module

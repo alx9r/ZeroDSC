@@ -76,4 +76,32 @@ Describe 'Import-DscResource using sample configuration scriptblock' {
             Should be 'RawResourceConfigInfo'
     }
 }
+
+Describe Test-DscResourceModuleLoaded {
+    foreach ( $value in @(
+            #         Paths      |  Result
+            #   Module  Resource |
+            @( 'c:\file.psm1', 'c:\file.psd1', $true ),
+            @( 'c:\file.psd1', 'c:\file.psm1', $true ),
+            @( 'c:\file.psm1', 'c:\otherfile.psm1', $false ),
+            @( 'c:\file.psm1', 'c:\otherpath\file.psm1', $false)
+        )
+    )
+    {
+        $modulePath,$resourcePath,$result = $value
+        Context "$modulePath, $resourcePath" {
+            Mock Get-Module -Verifiable {
+                New-Object psobject -Property @{ Path = $modulePath }
+            }
+            $resourceInfo = New-Object psobject -Property @{ Path = $resourcePath }
+            It "returns $result" {
+                $r = Test-DscResourceModuleLoaded $resourceInfo
+                $r | Should be $result
+            }
+            It 'invoked Get-Module' {
+                Assert-MockCalled Get-Module -Exactly -Times 1
+            }
+        }
+    }
+}
 }
