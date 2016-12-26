@@ -48,3 +48,40 @@ function Remove-DscResource
         Remove-Item "alias:\$($DscResource.ResourceType)"
     }
 }
+
+function Test-DscResourceModuleLoaded
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 1,
+                   Mandatory = $true,
+                   ValueFromPipeline = $true)]
+        $DscResourceInfo
+    )
+    process
+    {
+        return [bool]( $DscResourceInfo | Get-DscResourceModule )
+    }
+}
+
+function Get-DscResourceModule
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 1,
+                   Mandatory = $true,
+                   ValueFromPipeline = $true)]
+        $DscResourceInfo
+    )
+    process
+    {
+        function OmitExtension {
+            param( $path )
+            return $path.Substring(0,$path.LastIndexOf('.'))
+        }
+        return Get-Module |
+            ? { (OmitExtension $_.Path) -eq (OmitExtension $DscResourceInfo.Path) }
+    }
+}
