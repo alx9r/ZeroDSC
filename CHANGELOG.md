@@ -1,3 +1,14 @@
+## 0.1.1 (2017-01-02)
+ - improve "Installing ZeroDSC Section" in documentation
+ - improve public appearance of `Import-DscResource`
+ - use `InModuleScope{}` instead of `-Args ExportAll`
+ - remove `ExportAll` parameter
+ - explicitly import module `PSDesiredStateConfiguration`
+ - various improvements to the `IEnumerator`, `[ConfigStateMachine]`, and `[ConfigStep]` to explicitly handle exceptions thrown by resources
+ - consolidate the `[Event]` enum
+ - implement "always and apply" for `ThrowOnSet` in the `TestStub` DSC resource
+ - improve how `Get-MofResourceCommands` tests whether a module is already loaded
+
 ## 0.1.0 (2016-11-26)
  - created invokers for class- and MOF-based resources
  - interprets minimal configuration document format
