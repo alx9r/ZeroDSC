@@ -4,7 +4,7 @@
 ModuleToProcess = 'ZeroDsc.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.1.1'
 
 # ID used to uniquely identify this module
 GUID = '64410c3c-434f-4ce7-b9c2-3a056f0a1831'
@@ -16,7 +16,7 @@ Author = 'alx9r'
 # CompanyName = ''
 
 # Copyright statement for this module
-Copyright = 'Copyright (c) 2016, licensed under Apache 2.0 License.'
+Copyright = 'Copyright (c) 2016-2017, licensed under Apache 2.0 License.'
 
 # Description of the functionality provided by this module
 # Description = ''
