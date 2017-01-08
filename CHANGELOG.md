@@ -1,3 +1,5 @@
+## 0.2.0
+
 ## 0.1.1 (2017-01-02)
  - improve "Installing ZeroDSC Section" in documentation
  - improve public appearance of `Import-DscResource`

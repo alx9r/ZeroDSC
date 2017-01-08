@@ -24,6 +24,7 @@ Export-ModuleMember -Function @(
     'Import-DscResource'
     'ConfigInstructions'
     'Invoke-ConfigStep'
+    'Test-ConfigStep'
 
     'New-ResourceInvoker'
     'Invoke-ResourceCommand'
