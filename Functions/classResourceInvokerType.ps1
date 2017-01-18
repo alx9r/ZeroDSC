@@ -67,9 +67,17 @@ function New-ClassResourceObject
         )
         {
             $module | Import-Module
+
+            # $module isn't always a fully-populated object at this point
+            # We get the loaded modules(s) of the right name and select the
+            # one at the right path.
+            $liveModule = Get-Module $module.Name |
+                ? { $_.ModuleBase -eq $module.ModuleBase } |
+                Select -First 1
+
             try
             {
-                $object = (Get-Module $module.Name).NewBoundScriptBlock(
+                $object = $liveModule.NewBoundScriptBlock(
                     [scriptblock]::Create("[$($DscResource.Name)]::new()")
                 ).InvokeReturnAsIs()
             }

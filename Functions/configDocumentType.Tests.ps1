@@ -232,27 +232,37 @@ Describe ConvertTo-ConfigDocument {
     }
     Context 'duplicate Resources' {
         $h = @{}
-        It 'throws correct exception type' {
-            $h.CallSite = & {$MyInvocation}
+        It 'tolerates exact duplicates' {
             $raw = New-RawConfigDocument 'DocumentName' {
                 Get-DscResource StubResource2A | Import-DscResource
                 Get-DscResource StubResource2A | Import-DscResource
                 StubResource2A ConfigName2A @{}
             }
-            try
-            {
-                $raw | ConvertTo-ConfigDocument
-            }
-            catch [FormatException]
-            {
-                $h.Exception = $_
-            }
-            $h.Exception | Should not beNullOrEmpty
+            $r = $raw | ConvertTo-ConfigDocument
+            $r.Resources.Count | Should be 1
+            $r.Resources.Keys[0] | Should be '[StubResource2A]ConfigName2A'
         }
-        It 'the exception shows the filename of the offending call' {}
-        It 'the exception shows the line number of the offending call' {}
-        It 'the exception contains an informative message' {
-            $h.Exception.ToString() | Should match 'Duplicate resource named StubResource2A'
+        It 'binds to the later version...' {
+            $raw = New-RawConfigDocument 'DocumentName' {
+                Get-DscResource StubResource4A | ? {$_.Version -eq '1.1'} | Import-DscResource
+                Get-DscResource StubResource4A | ? {$_.Version -eq '1.0'} | Import-DscResource
+                StubResource4A ConfigName4A @{}
+            }
+            $r = $raw | ConvertTo-ConfigDocument
+            $r.Resources.Count | Should be 1
+            $r.Resources.'[StubResource4A]ConfigName4A'.Resource.Version |
+                Should be '1.1'
+        }
+        It '...regardless of order encountered' {
+            $raw = New-RawConfigDocument 'DocumentName' {
+                Get-DscResource StubResource4A | ? {$_.Version -eq '1.0'} | Import-DscResource
+                Get-DscResource StubResource4A | ? {$_.Version -eq '1.1'} | Import-DscResource
+                StubResource4A ConfigName4A @{}
+            }
+            $r = $raw | ConvertTo-ConfigDocument
+            $r.Resources.Count | Should be 1
+            $r.Resources.'[StubResource4A]ConfigName4A'.Resource.Version |
+                Should be '1.1'
         }
     }
     Context 'bad resource binding' {
