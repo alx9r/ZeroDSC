@@ -6,11 +6,11 @@ $records = @{}
 $stubResourceNames = @(
     'StubResource1AFriendlyName','StubResource1BFriendlyName',
     'StubResource2A','StubResource2B','StubResource2C',
-    'StubResource3A','StubResource3B'
+    'StubResource3A','StubResource3B','StubResource4A'
 )
 $stubClassResourceNames = @(
     'StubResource2A','StubResource2B','StubResource2C',
-    'StubResource3A','StubResource3B'
+    'StubResource3A','StubResource3B','StubResource4A'
 )
 $stubMofResourceNames = @(
     'StubResource1AFriendlyName','StubResource1BFriendlyName'
@@ -39,7 +39,7 @@ Describe New-ClassResourceObject {
     {
         $record = $records.$resourceName
         It "returns correct resource object for $resourceName" {
-            $r = $record.DscResource | New-ClassResourceObject
+            $r = $record.DscResource | Select -First 1 | New-ClassResourceObject
             $r.Count | Should be 1
             $r.GetType().Name | Should be $resourceName
         }
@@ -51,7 +51,7 @@ Describe Test-ClassResourceType {
     {
         $record = $records.$resourceName
         It "$resourceName is a Class resource type" {
-            $r = $record.DscResource | Test-ClassResourceType
+            $r = $record.DscResource | Select -First 1 | Test-ClassResourceType
             $r.Count | Should be 1
             $r | Should beOfType bool
             $r | Should be $true

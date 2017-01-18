@@ -88,12 +88,14 @@ function ConvertTo-ConfigDocument
         $resources = [System.Collections.Generic.Dictionary[System.String,Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]]::new()
         foreach ( $resource in $InputObject.DscResources )
         {
-            # check for duplicate resource names
-            if ( $resources.ContainsKey( $resource.Name ) )
+            # skip duplicate resources with lower version numbers
+            if
+            (
+                $resources.ContainsKey( $resource.Name ) -and
+                ( $resource.Version -lt $resources.($resource.Name).Version )
+            )
             {
-                throw [System.FormatException]::new(
-                    "Duplicate resource named $($resource.Name)"
-                )
+                continue
             }
 
             $resources.($resource.Name) = $resource
