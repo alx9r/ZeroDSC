@@ -4,7 +4,7 @@
 ModuleToProcess = 'ZeroDsc.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.2.0'
+ModuleVersion = '0.2.1'
 
 # ID used to uniquely identify this module
 GUID = '64410c3c-434f-4ce7-b9c2-3a056f0a1831'

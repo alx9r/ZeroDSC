@@ -1,3 +1,5 @@
+## 0.2.1
+
 ## 0.2.0 (2017-01-18)
  - implement Test-ConfigStep
  - improvements to class resource invoker and ConvertTo-ConfigDocument to tolerate multiple DSC resource versions
