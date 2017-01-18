@@ -1,4 +1,6 @@
-## 0.2.0
+## 0.2.0 (2017-01-18)
+ - implement Test-ConfigStep
+ - improvements to class resource invoker and ConvertTo-ConfigDocument to tolerate multiple DSC resource versions
 
 ## 0.1.1 (2017-01-02)
  - improve "Installing ZeroDSC Section" in documentation
