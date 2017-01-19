@@ -231,6 +231,11 @@ function Get-CurrentConfigStep
         # populate the action
         $outputObject.Action = @{
             Test = {
+                # workaround for GH-36
+                param($functions,$variables)
+                $functions.Keys | % { New-Item "function:$_" -Value $functions.$_ | Out-Null }
+                $variables | % { Set-Variable $_.Name $_.Value | Out-Null }
+                # end workaround
                 try
                 {
                     # invoke the test
@@ -269,6 +274,11 @@ function Get-CurrentConfigStep
                 return $result
             }
             Set = {
+                # workaround for GH-36
+                param($functions,$variables)
+                $functions.Keys | % { New-Item "function:$_" -Value $functions.$_ | Out-Null }
+                $variables | % { Set-Variable $_.Name $_.Value | Out-Null }
+                # end workaround
                 try
                 {
                     # invoke the set
@@ -321,7 +331,8 @@ function Invoke-ConfigStep
         try
         {
             # invoke the action
-            $result = $ConfigStep.Action.InvokeWithContext($functions,$ConfigStep.ActionArgs)
+            # Workaround for GH-36 (Normally this would use {}.InvokeWithContext())
+            $result = & $ConfigStep.Action $functions $ConfigStep.ActionArgs
         }
         finally
         {
