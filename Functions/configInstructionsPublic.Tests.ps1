@@ -93,3 +93,39 @@ Describe 'ConfigInstructions Public API - Pipeline' {
         $r.ResourceName | Should be '[TestStub]b'
     }
 }
+
+Describe 'ConfigInstructions Public API - Resource Exceptions and Stack Trace' {
+    $h = @{}
+    $document = {
+        Get-DscResource TestStub | Import-DscResource
+
+        TestStub a @{
+            Key = 'a'
+            ThrowOnTest = 'always'
+        }
+    }
+    It 'create instructions' {
+        $h.Instructions = ConfigInstructions Name $document
+    }
+    It 'throws exception' {
+        $e = $h.Instructions.GetEnumerator()
+        $e.MoveNext()
+        try
+        {
+            $e.Current | Invoke-ConfigStep
+        }
+        catch
+        {
+            $threw = $true
+            $h.Exception = $_
+        }
+        $threw | Should be $true
+    }
+    It 'exception originates in resource' {
+        $h.Exception.Exception.Message | Should match 'TestStub forced exception'
+    }
+    It 'stack trace includes originating line' {
+        $h.Exception.ScriptStackTrace | Should match 'TestStub.psm1'
+        $h.Exception.ScriptStackTrace | Should match 'at Test-TargetResource'
+    }
+}
