@@ -26,7 +26,6 @@ Describe 'Test-ConfigStep Public API - Pipeline' {
     }
     It 'create instructions' {
         $h.Instructions = ConfigInstructions Name $document
-        $h.Instructions.Count | Should be 1
         $h.Instructions.GetType() | Should be 'ConfigInstructions'
     }
     It 'returns false' {
