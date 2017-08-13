@@ -99,6 +99,30 @@ Describe New-RawConfigDocument {
         $r.DscResources.Count | Should be 1
         $r.DscResources[0].Name | Should be 'StubResource1AFriendlyName'
     }
+    Context 'arguments' {
+        It 'correctly passes through a named argument' {
+            $d = New-RawConfigDocument ConfigName {
+                param($ArgName)
+                $r = Get-DscResource StubResource1A
+                $r | Import-DscResource
+                StubResource1AFriendlyName $ArgName @{ Key = "$ArgName Key" }
+            } -NamedArgs @{ ArgName = 'arg_name' }
+            $r = $d.ResourceConfigs | ? { $_.ConfigName -eq 'arg_name' }
+            $r.Count | Should be 1
+            $r[0].Params.Key | Should be 'arg_name Key'
+        }
+        It 'correctly passes through a positional argument' {
+            $d = New-RawConfigDocument ConfigName {
+                param($arg1)
+                $r = Get-DscResource StubResource1A
+                $r | Import-DscResource
+                StubResource1AFriendlyName $arg1 @{ Key = "$arg1 Key" }
+            } -ArgumentList 'arg1_value'
+            $r = $d.ResourceConfigs | ? { $_.ConfigName -eq 'arg1_value' }
+            $r.Count | Should be 1
+            $r[0].Params.Key | Should be 'arg1_value Key'
+        }
+    }
     Context 'emits invalid object type' {
         It 'throws correct exception type' {
             {

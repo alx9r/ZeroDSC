@@ -43,12 +43,18 @@ function New-RawConfigDocument
         $Name,
 
         [scriptblock]
-        $ScriptBlock
+        $ScriptBlock,
+
+        [hashtable]
+        $NamedArgs = @{},
+
+        [object[]]
+        $ArgumentList = @()
     )
     process
     {
         $module = New-ConfigDocumentModule
-        $items = & $module.NewBoundScriptBlock($ScriptBlock)
+        $items = & $module.NewBoundScriptBlock($ScriptBlock) @ArgumentList @NamedArgs
         $module | Remove-Module
         $ConfigDocument = [RawConfigDocument]::new($Name)
         foreach ( $item in $items )
