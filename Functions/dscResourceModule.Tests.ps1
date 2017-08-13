@@ -45,6 +45,8 @@ Describe 'Import- and Remove-DscResource' {
         $r | Should beNullOrEmpty
     }
     It 'correctly removes the alias'  {
+        $records.'StubResource4A_1.0' | Import-DscResource
+        $records.'StubResource4A_1.0' | Remove-DscResource
         { Get-Alias StubResource4A -ea Stop } |
             Should throw 'cannot find a matching alias'
     }
