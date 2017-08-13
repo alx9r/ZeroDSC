@@ -28,4 +28,7 @@ Export-ModuleMember -Function @(
 
     'New-ResourceInvoker'
     'Invoke-ResourceCommand'
+
+    'New-RawResourceConfigInfo'
+    'Aggregate'
 )

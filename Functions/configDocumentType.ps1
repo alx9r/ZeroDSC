@@ -47,7 +47,9 @@ function New-RawConfigDocument
     )
     process
     {
-        $items = & (Get-Module ZeroDsc).NewBoundScriptBlock($ScriptBlock)
+        $module = New-ConfigDocumentModule
+        $items = & $module.NewBoundScriptBlock($ScriptBlock)
+        $module | Remove-Module
         $ConfigDocument = [RawConfigDocument]::new($Name)
         foreach ( $item in $items )
         {

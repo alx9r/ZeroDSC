@@ -115,7 +115,8 @@ Describe New-RawConfigDocument {
 Describe 'Configuration sample' {
     It 'returns a ConfigDocument object' {
         $records.Sample1Result = New-RawConfigDocument ConfigName {
-            Get-DscResource StubResource2A | Import-DscResource
+            $r = Get-DscResource StubResource2A
+            $r | Import-DscResource
             StubResource2A ResourceName @{
                 StringParam1 = 's1'
                 BoolParam = $true
