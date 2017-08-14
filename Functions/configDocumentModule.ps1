@@ -23,8 +23,8 @@ function New-ConfigDocumentModule
                 [Parameter(Position = 3)]
                 [hashtable]
                 $NamedArgs = @{}
-            ) 
-            
+            )
+
             & $Scriptblock @ArgumentList @NamedArgs
         }
     }
