@@ -1,4 +1,4 @@
-Import-Module ZeroDSC -Force
+Import-Module ZeroDSC #-Force
 
 InModuleScope ZeroDSC {
 Describe Test-ConfigStep {
