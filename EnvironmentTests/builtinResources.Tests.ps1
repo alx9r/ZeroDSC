@@ -1,4 +1,4 @@
-Import-Module ZeroDsc -Force
+Import-Module ZeroDsc #-Force
 Import-Module PSDesiredStateConfiguration
 
 $expectedBuiltin = @(
