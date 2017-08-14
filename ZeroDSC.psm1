@@ -31,5 +31,8 @@ Export-ModuleMember -Function @(
     'Invoke-ResourceCommand'
 
     'New-RawResourceConfigInfo'
+)
+
+Export-ModuleMember -Alias @(
     'Aggregate'
 )
