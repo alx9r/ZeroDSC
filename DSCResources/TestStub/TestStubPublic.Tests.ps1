@@ -3,7 +3,9 @@ Import-Module ZeroDSC -Force
 Describe 'TestStub Resource Public API' {
     $h = @{}
     It 'is available using Get-DscResource' {
-        $h.DSCResource = Get-DscResource TestStub ZeroDSC
+        $h.DSCResource = Get-DscResource TestStub ZeroDSC |
+            Sort Version |
+            Select -Last 1
     }
     It 'creating new invoker works' {
         $h.Invoker = $h.DSCResource | New-ResourceInvoker

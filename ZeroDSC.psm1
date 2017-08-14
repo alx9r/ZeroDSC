@@ -22,10 +22,17 @@ $moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path
 
 Export-ModuleMember -Function @(
     'Import-DscResource'
+    'Import-DscFunction'
     'ConfigInstructions'
     'Invoke-ConfigStep'
     'Test-ConfigStep'
 
     'New-ResourceInvoker'
     'Invoke-ResourceCommand'
+
+    'New-RawResourceConfigInfo'
+)
+
+Export-ModuleMember -Alias @(
+    'Aggregate'
 )

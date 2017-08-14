@@ -3,17 +3,32 @@ function ConfigInstructions
     [CmdletBinding()]
     param
     (
-        [Parameter(position = 1)]
+        [Parameter(position = 1,
+                   Mandatory = $true)]
         [string]
         $Name,
 
-        [Parameter(position = 2)]
+        [Parameter(position = 2,
+                   Mandatory = $true)]
         [scriptblock]
-        $Scriptblock
+        $Scriptblock,
+
+        [Parameter(ValueFromPipeline = $true)]
+        [hashtable]
+        $NamedArgs = @{},
+
+        [object[]]
+        $ArgumentList = @()
     )
     process
     {
-        return New-RawConfigDocument $Name $Scriptblock |
+        $splat = @{
+            Name = $Name
+            Scriptblock = $Scriptblock
+            NamedArgs = $NamedArgs
+            ArgumentList = $ArgumentList
+        }
+        return New-RawConfigDocument @splat |
             ConvertTo-ConfigDocument |
             New-ConfigInstructions
     }

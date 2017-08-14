@@ -99,6 +99,44 @@ Describe New-RawConfigDocument {
         $r.DscResources.Count | Should be 1
         $r.DscResources[0].Name | Should be 'StubResource1AFriendlyName'
     }
+    Context 'arguments' {
+        It 'correctly passes through a named argument' {
+            $d = New-RawConfigDocument ConfigName {
+                param($ArgName)
+                $r = Get-DscResource TestStub ZeroDsc
+                $r | Import-DscResource
+                TestStub $ArgName @{ Key = "$ArgName Key" }
+            } -NamedArgs @{ ArgName = 'arg_value' }
+            $r = $d.ResourceConfigs | ? { $_.ConfigName -eq 'arg_value' }
+            $r.Count | Should be 1
+            $r[0].Params.Key | Should be 'arg_value Key'
+        }
+        It 'correctly passes through a positional argument' {
+            $d = New-RawConfigDocument ConfigName {
+                param($arg1)
+                $r = Get-DscResource StubResource1A
+                $r | Import-DscResource
+                StubResource1AFriendlyName $arg1 @{ Key = "$arg1 Key" }
+            } -ArgumentList 'arg1_value'
+            $r = $d.ResourceConfigs | ? { $_.ConfigName -eq 'arg1_value' }
+            $r.Count | Should be 1
+            $r[0].Params.Key | Should be 'arg1_value Key'
+        }
+    }
+    Context 'local variables' {
+        It 'correctly accesses a variable local to the caller' {
+            $local = 'local_value'
+            $d = New-RawConfigDocument ConfigName {
+                $r = Get-DscResource TestStub ZeroDsc
+                $r | Import-DscResource
+
+                TestStub $local @{ Key = "$local Key" }
+            }
+            $r = $d.ResourceConfigs | ? { $_.ConfigName -eq 'local_value' }
+            $r.Count | Should be 1
+            $r[0].Params.Key | Should be 'local_value key'
+        }
+    }
     Context 'emits invalid object type' {
         It 'throws correct exception type' {
             {
@@ -115,7 +153,8 @@ Describe New-RawConfigDocument {
 Describe 'Configuration sample' {
     It 'returns a ConfigDocument object' {
         $records.Sample1Result = New-RawConfigDocument ConfigName {
-            Get-DscResource StubResource2A | Import-DscResource
+            $r = Get-DscResource StubResource2A
+            $r | Import-DscResource
             StubResource2A ResourceName @{
                 StringParam1 = 's1'
                 BoolParam = $true
