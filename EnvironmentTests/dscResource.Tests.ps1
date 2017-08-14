@@ -1,4 +1,4 @@
-Import-Module ZeroDsc -Force
+Import-Module ZeroDsc #-Force
 
 Describe 'Test Environment' {
     It 'add the test stubs to PSModulePath' {

@@ -1,4 +1,4 @@
-Import-Module ZeroDSC -Force
+Import-Module ZeroDSC #-Force
 
 Describe 'TestStub Resource Public API' {
     $h = @{}
