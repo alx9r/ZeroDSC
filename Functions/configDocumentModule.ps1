@@ -1,14 +1,31 @@
 function New-ConfigDocumentModule
 {
     New-Module {
-        'Import-DscResource','New-RawResourceConfigInfo','Aggregate' |
+        'Import-DscResource' |
             % {
-                Set-Item Function:\Import-DscResource (
+                Set-Item Function:\$_ (
                     [scriptblock]::Create(
-                        (Get-Item Function:\Import-DscResource).ScriptBlock
+                        (Get-Item Function:\$_).ScriptBlock
                     )
                 ) -Force
             }
-        Set-Alias Aggregate New-RawResourceConfigInfo
+
+        function Invoke-InModule {
+            param
+            (
+                [Parameter(Position = 1)]
+                [scriptblock]
+                $Scriptblock,
+
+                [Parameter(Position = 2)]
+                $ArgumentList = @(),
+
+                [Parameter(Position = 3)]
+                [hashtable]
+                $NamedArgs = @{}
+            ) 
+            
+            & $Scriptblock @ArgumentList @NamedArgs
+        }
     }
 }
